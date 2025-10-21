@@ -1,0 +1,142 @@
+import sys
+from ase.io import read
+
+def read_command_line_arguments():
+  """Process the command line arguments given by the user"""
+
+  # Filename of the input file
+  input_file = None
+
+  for arg in sys.argv:
+    if arg[0:7] == "-input=":
+      input_file = arg[7:]
+
+  return input_file
+
+def read_input_file(input_filename):
+  """Read in the input file and set all given input parameters"""
+
+  ##############################################################################
+  ##### GENERAL INPUT VARIABLES
+  ##### HERE DEFAULT VALUES FOR ALL INPUT PARAMETERS ARE GIVEN
+  ##############################################################################
+  
+  # The method that should be used to calculate energies and gradients
+  pes_method = "mace"
+  # Type of the MACE model
+  # mp:   foundation models trained on Materials Project data (for crystals)
+  # omol: foundation models trained on OMOL data              (for molecules)
+  mace_mlip_type = "mp"
+  # Path to the desired MACE model
+  mace_mlip_file = None
+  device="cpu"
+
+  # Master Keyword to activate the MD routine
+  # available are: NVT
+  ensemble = None
+  # The desired initial temperature in K
+  # The desired thermostat
+  thermostat = "nose-hoover"
+  T_init = 300.0
+  # The desired total number of MD steps
+  num_steps = 100
+  # The desired MD time step in fs
+  dt = 1.0
+  # The write out frequency (every N steps, energy and structure are written)
+  num_freq = 1
+  # The fictious mass of the Nose-Hoover Chain Thermostat (as multiples of time steps)
+  smass = 40.0
+  # The chain length of the Nose-Hoover Chain Thermostat
+  # NB: MDALGO = 2 IN VASP USES THE CLASSICAL NOSE-HOOVER THERMOSTAT WITHOUT CHAINS
+  num_chains = 3 # default is 3 in ASE
+  # Random seed for initialization of the velocities
+  seed = None
+  # Determine if the Grimme D3 dispersion correction should be used
+  dispersion = False
+  # Determine if translation of the center-of-mass and total angular momentum
+  # should be removed
+  stationary = False
+  zero_rotation = False
+  
+  ##############################################################################
+
+  try:
+    with open(input_filename, "r") as input_file:
+      # Read in the input file line by line
+      for line in input_file:
+        # Split the line into a Python list
+        line_list = line.rstrip().split()
+        # Skip the line if it is empty
+        if not line_list:
+          continue
+
+        if line_list[0] == "ensemble":
+          ensemble = line_list[1]
+        elif line_list[0] == "steps":
+          num_steps = int(line_list[1])
+        elif line_list[0] == "dt":
+          dt = float(line_list[1])
+        elif line_list[0] == "steps_freq":
+          num_freq = int(line_list[1])
+        elif line_list[0] == "stationary":
+          stationary = True
+        elif line_list[0] == "zero_rotation":
+          zero_rotation = True
+        elif line_list[0] == "dispersion":
+          dispersion = True
+        elif line_list[0] == "seed":
+          seed = int(line_list[1])
+        elif line_list[0] == "pes":
+          pes_method = line_list[1]
+
+        # If the Master Keyword ensemble was set to NVT check if the
+        # NVT object was correctly initialized in the input file
+        # form: nvt {
+        # temperature ...
+        # thermostat ...
+        # smass
+        # chains
+        # }
+        elif ensemble == "nvt" and line_list[0] == "nvt" and line_list[1] == "{":
+          next_line = "xxxx"
+          while next_line != "}":
+            next_line = input_file.readline().rstrip()
+            next_line_split = next_line.split()
+            if next_line_split[0] == "temperature":
+              T_init = float(next_line_split[1])
+            if next_line_split[0] == "thermostat":
+              thermostat = next_line_split[1]
+            if next_line_split[0] == "smass":
+              smass = int(next_line_split[1])
+            if next_line_split[0] == "chains":
+              num_chains = int(next_line_split[1])
+
+        elif pes_method == "mace" and line_list[0] == "mace" and line_list[1] == "{":
+          next_line = "xxxx"
+          while next_line != "}":
+            next_line = input_file.readline().rstrip()
+            next_line_split = next_line.split()
+            if next_line_split[0] == "mlip_file":
+              mace_mlip_file = next_line_split[1]
+            if next_line_split[0] == "mlip_type":
+              mace_mlip_type = next_line_split[1]
+            if next_line_split[0] == "device":
+              device = next_line_split[1]
+
+  except FileNotFoundError:
+    print("")
+    print("Input file", input_filename, "was not found. Aborting with exit code -2 ...")
+    print("")
+    sys.exit(-2)
+
+  return pes_method, mace_mlip_type, mace_mlip_file, ensemble, thermostat, \
+  T_init, num_steps, dt, num_freq, smass, num_chains, seed, dispersion, \
+  stationary, zero_rotation, device
+
+def read_atoms(file_type):
+  """Read in the geometry from the POSCAR file and return an atoms object
+  from it"""
+
+  atoms = read(file_type)
+  return atoms
+
