@@ -1,5 +1,3 @@
-#! /usr/bin/bash
-
 #######################################################################
 #####
 ##### MASTER SCRIPT TO MANAGE THE MLIP BENCHMARKING PROJECT

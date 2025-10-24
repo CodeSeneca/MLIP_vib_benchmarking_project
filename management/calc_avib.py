@@ -1,5 +1,3 @@
-#! /apps/python/3.12-conda/bin/python
-
 import sys
 import numpy as np
 from scipy.integrate import simpson

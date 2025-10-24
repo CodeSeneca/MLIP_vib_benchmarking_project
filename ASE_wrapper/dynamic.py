@@ -1,5 +1,3 @@
-#! /apps/python/3.12-conda/bin/python
-
 ###############################################################################
 #####
 ##### Author: Maximilian Bechtel <maxi.bechtel@fau.de>
