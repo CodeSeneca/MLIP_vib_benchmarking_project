@@ -29,6 +29,17 @@ def read_input_file(input_filename):
   mace_mlip_type = "mp"
   # Path to the desired MACE model
   mace_mlip_file = None
+  # Type of the UMA model
+  # uma-s-1p1 (small model) or uma-m-1p1 (medium model)
+  uma_model = "small"
+  # The task that should be performed with the UMA model
+  # Available are:
+  #   oc20 :  catalysis
+  #   omat :  inorganic materials
+  #   omol :  molecules
+  #   odac :  metal organic frameworks (MOFs)
+  #   omc  :  molecular crystals
+  uma_task = "omol"
   device="cpu"
 
   # Master Keyword to activate the MD routine
@@ -123,15 +134,25 @@ def read_input_file(input_filename):
             if next_line_split[0] == "device":
               device = next_line_split[1]
 
+        elif pes_method == "uma" and line_list[0] == "uma" and line_list[1] == "{":
+          next_line = "xxxx"
+          while next_line != "}":
+            next_line = input_file.readline().rstrip()
+            next_line_split = next_line.split()
+            if next_line_split[0] == "model":
+              uma_model = next_line_split[1]
+            if next_line_split[0] == "task":
+              uma_task = next_line_split[1]
+
   except FileNotFoundError:
     print("")
     print("Input file", input_filename, "was not found. Aborting with exit code -2 ...")
     print("")
     sys.exit(-2)
 
-  return pes_method, mace_mlip_type, mace_mlip_file, ensemble, thermostat, \
-  T_init, num_steps, dt, num_freq, smass, num_chains, seed, dispersion, \
-  stationary, zero_rotation, device
+  return pes_method, mace_mlip_type, mace_mlip_file, uma_model, uma_task, \
+  ensemble, thermostat, T_init, num_steps, dt, num_freq, smass, num_chains, \
+  seed, dispersion, stationary, zero_rotation, device
 
 def read_atoms(file_type):
   """Read in the geometry from the POSCAR file and return an atoms object

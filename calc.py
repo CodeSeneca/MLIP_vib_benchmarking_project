@@ -1,4 +1,5 @@
-def set_pes(atoms, pes_method, mace_mlip_type, mace_mlip_file, dispersion, device):
+def set_pes(atoms, pes_method, mace_mlip_type, mace_mlip_file, uma_model, \
+uma_task, dispersion, device):
   """Set the Calculator used for all calculations"""
 
   # Define a MACE model with possible D3 dispersion correction
@@ -26,4 +27,24 @@ def set_pes(atoms, pes_method, mace_mlip_type, mace_mlip_file, dispersion, devic
       atoms.calc = combined_calc
     else:
       atoms.calc = mace_mlip
+
+  # Define an UMA model by the FAIR Chemistry team
+  if pes_method == "uma":
+    from fairchem.core import pretrained_mlip, FAIRChemCalculator
+
+    # Set the UMA model: uma-s-1p1 (small model) or uma-m-1p1 (medium model)
+    if uma_model == "small":
+      predictor = pretrained_mlip.get_predict_unit("uma-s-1p1", device=device)
+    elif uma_model == "medium":
+      predictor = pretrained_mlip.get_predict_unit("uma-m-1p1", device=device)
+
+    # Set the task that should be performed with the UMA model
+    # Available are:
+    #   oc20 :  catalysis
+    #   omat :  inorganic materials
+    #   omol :  molecules
+    #   odac :  metal organic frameworks (MOFs)
+    #   omc  :  molecular crystals
+    calc = FAIRChemCalculator(predictor, task_name=uma_task)
+    atoms.calc = calc
 
