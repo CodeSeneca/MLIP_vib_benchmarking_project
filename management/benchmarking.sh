@@ -30,6 +30,9 @@ out_file="fvib_results.dat"
 # The copy command via rsync
 CP="rsync -auvz"
 
+# The location at which the bash script is running
+script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
 #######################################################################
 ##### FUNCTIONS
 #######################################################################
@@ -201,7 +204,7 @@ make_vDOS() {
         # Determine the number of vibrational degrees of freedom fvib = 3N - 6
         num_fvib=$(echo "3*$num_atoms-6" | bc -l)
         # Calculate the vibrational free energy F_vib
-        calc_avib.py -T=$temp -fvib=$num_fvib > fvib.log
+        python $script_dir/calc_avib.py -T=$temp -fvib=$num_fvib > fvib.log
         avib_out=$(tail -n 2 fvib.log | head -n 1)
         avib=$(echo "$avib_out" | awk '{print$3}')
         echo "$num_fvib    $avib" >> "../../fvib_results.dat"
