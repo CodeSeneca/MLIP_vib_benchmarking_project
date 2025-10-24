@@ -1,0 +1,39 @@
+! TRAVIS input file
+! Created with TRAVIS version compiled at Jul 31 2025 16:47:34
+! Source code version: Jul 29 2022
+! Input file written at Wed Oct 15 16:43:44 2025.
+XDATCAR
+! Use the advanced mode until the analysis selection menu (y/n)? [no] 
+no
+! Use these values (y) or enter different values (n)? [yes] 
+y
+! Update cell geometry in every time step (i.e., NPT ensemble) (y) or use fixed cell (n)? [yes] 
+y
+! Create images of the structural formulas (y/n)? [no] 
+n
+! Accept these molecules (y) or change something (n)? [yes] 
+y
+! Which functions to compute (comma separated)?
+power
+! Use the advanced mode for the main part (y/n)? [no] 
+no
+! Enter the physical time distance between successive trajectory frames in fs: [0.5] 
+1.0
+! Compute global power spectrum of whole system (y/n) [yes] 
+y
+! Enter the correlation depth of the ACF (in trajectory frames): [4096] 
+
+! Weight autocorrelation functions by atomic mass (y/n)? [yes] 
+yes
+! Calculate spectrum up to which wave number (cm^-1)? [5000.00 cm^-1] 
+
+! Correct frequency shift of the Verlet integrator (y/n)? [no] 
+no
+! Compute power spectrum of certain atoms/molecules (y/n)? [no] 
+no
+! In which trajectory frame to start processing the trajectory? [1] 
+1001
+! How many trajectory frames to read (from this position on)? [all] 
+
+! Use every n-th read trajectory frame for the analysis: [1] 
+
