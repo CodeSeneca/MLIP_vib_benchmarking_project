@@ -70,9 +70,6 @@ if __name__ == "__main__":
 
     dynamics_object = init_md(atoms_object, ensemble, thermostat, T_init, \
     seed, stationary, zero_rotation, dt, smass, num_chains)
-    if pes_method == "mace" and mace_mlip_type == "omol" and dispersion==True:
-      print("WARNING: The MACE OMOL models have been selected. Currently MACE OMOL does not support D3 corrections natively!")
-      print("D3 corrections will be added manually by the TorchDFTD3Calculator, which is still experiemtally.")
 
     if not dynamics_object:
       print("The MD dynamics object could not be initialized. Aborting with exit code -4 ...")

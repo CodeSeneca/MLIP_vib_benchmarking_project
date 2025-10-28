@@ -1,6 +1,6 @@
 #######################################################################
 #####
-##### MASTER SCRIPT TO MANAGE THE MLIP BENCHMARKING PROJECT
+##### MASTER SCRIPT TO MANAGE THE MLIP VIB BENCHMARKING PROJECT
 ##### Author: Maximilian Bechtel <maxi.bechtel@fau.de>
 #####
 #######################################################################
