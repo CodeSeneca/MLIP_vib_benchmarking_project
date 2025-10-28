@@ -33,14 +33,14 @@ if __name__ == "__main__":
   if pes_method == "mace":
     print("Used model type:", mace_mlip_type)
     print("Used MACE model:", mace_mlip_file)
-  if pes_method == "uma" and uma_model == "small":
+  elif pes_method == "uma" and uma_model == "small":
     print("Used uma model: uma-s-1p1")
     print("Performed task:", uma_task)
   elif pes_method == "uma" and uma_model == "medium":
     print("Used uma model: uma-m-1p1")
     print("Performed task:", uma_task)
   else:
-    print("No suitable UMA model given. Aborting with exit code -5 ...")
+    print("No suitable model given. Aborting with exit code -5 ...")
   # if uma_task not "oc20" or uma_task not "omat" or uma_task not "omol" or uma_task not "odac" or uma_task not "omc":
   #   print("No suitable UMA task given. Aborting with exit code -6 ...")
   if dispersion:
