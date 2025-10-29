@@ -15,20 +15,24 @@ def process_command_line_arguments():
   the arguments have to be:
   arg1    the first fvib_results.dat file
   arg2    the second fvib_results.dat file
+  arg3    the name of the MLIP model displayed in the histogram plot
   """
 
   # The number of arguments given
   num_arguments = len(sys.argv) - 1
   # File 1 and fil2
   arg1 = arg2 = None
+  # Default MLIP name
+  mlip_name = None
 
-  if num_arguments != 2:
-    return arg1, arg2
+  if num_arguments < 3:
+    return arg1, arg2, mlip_name
+  else:
+    arg1 = sys.argv[1]
+    arg2 = sys.argv[2]
+    mlip_name = sys.argv[3]
 
-  arg1 = sys.argv[1]
-  arg2 = sys.argv[2]
-
-  return arg1, arg2
+  return arg1, arg2, mlip_name
 
 def get_fvib(filename1, filename2):
   """Get the average Fvib values for each run from both files"""
@@ -90,7 +94,7 @@ def get_diff(values1, values2):
 
   return diff
 
-def plot_histogram(diff):
+def plot_histogram(diff, mlip_name):
   """Plot the errors as a histogram plot"""
 
   fig, ax = plt.subplots(figsize=(10,7))
@@ -100,7 +104,7 @@ def plot_histogram(diff):
 
   counts, bins = np.histogram(diff, bins=100)
   frequencies = counts / float(counts.sum())
-  ax.bar(bins[:-1], frequencies, width=np.diff(bins), align="edge", color="darkred", label="MACE-MP-agnesi-medium model")
+  ax.bar(bins[:-1], frequencies, width=np.diff(bins), align="edge", color="darkred", label=mlip_name)
   ax.legend(fontsize=12)
 
   plt.savefig(fname="error_histogram.png", format="png")
@@ -178,15 +182,15 @@ if __name__ == "__main__":
   print("Script compare_fvib.py: Compare the results from different MLIPs")
   print("                        written by benchmarking.sh -make_vDOS")
   print("")
-  print("Usage: compare_fvib.py [fvib_results_1.dat] [fvib_results_2.dat]")
+  print("Usage: compare_fvib.py [fvib_results_1.dat] [fvib_results_2.dat] [model name]")
   print("")
 
   # Get the two files to compare
-  filename1, filename2 = process_command_line_arguments()
+  filename1, filename2, mlip_name = process_command_line_arguments()
 
   # Exit if no files were given
-  if not filename1 or not filename2:
-    print("No suitable files to compare given ...")
+  if not filename1 or not filename2 and not mlip_name:
+    print("No suitable files to compare or MLIP name given ...")
     print("")
     sys.exit(-1)
 
@@ -209,7 +213,7 @@ if __name__ == "__main__":
 
   # Plot the error per atom as histogram plot
   print("Generating the histogram plot ...")
-  plot_histogram(fvib_diff)
+  plot_histogram(fvib_diff, mlip_name)
   # Plot the values against each other
   print("Generating the scatter plot ...")
   plot_scatter(fvib_1, fvib_2, fvib_diff, filename1, filename2)
