@@ -53,5 +53,14 @@ uma_task, dispersion, device):
     #   odac :  metal organic frameworks (MOFs)
     #   omc  :  molecular crystals
     calc = FAIRChemCalculator(predictor, task_name=uma_task)
-    atoms.calc = calc
+
+    # Add the Grimme D3 correction manually
+    if dispersion:
+      dft_d3_calc = DFTD3(atoms=atoms, device=device, damping="bj")
+      print("")
+      print("Pytorch implementation of DFTD3 initialized.")
+      combined_calc = SumCalculator([calc, dft_d3_calc])
+      atoms.calc = combined_calc
+    else:
+      atoms.calc = calc
 
