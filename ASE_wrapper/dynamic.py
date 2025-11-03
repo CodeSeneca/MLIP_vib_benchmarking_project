@@ -24,8 +24,9 @@ if __name__ == "__main__":
 
   # Read in the input file
   pes_method, mace_mlip_type, mace_mlip_file, uma_model, uma_task, ensemble, \
-  thermostat, T_init, num_steps, dt, num_freq, smass, num_chains, seed, \
-  dispersion, stationary, zero_rotation, device = read_input_file(input_file)
+  thermostat, T_init, pressure, pfactor, num_steps, dt, num_freq, smass, \
+  num_chains, seed, dispersion, stationary, zero_rotation, \
+  device = read_input_file(input_file)
 
   # Print information about the input parameters given
   print("")
@@ -39,6 +40,8 @@ if __name__ == "__main__":
   elif pes_method == "uma" and uma_model == "medium":
     print("Used uma model: uma-m-1p1")
     print("Performed task:", uma_task)
+  elif pes_method == "orb":
+    print("Currently only the orb_v3_conservative_inf_omat model is available")
   else:
     print("No suitable model given. Aborting with exit code -5 ...")
   # if uma_task not "oc20" or uma_task not "omat" or uma_task not "omol" or uma_task not "odac" or uma_task not "omc":
@@ -61,20 +64,37 @@ if __name__ == "__main__":
 
   # Initialize the MD simulation and create a dynamics object for it
   # but only if ensemble as Master Keyword is set
-  if ensemble == "nvt":
+  if ensemble == "nvt" or "npt":
 
     from md import init_md, run_md
 
-    print("")
-    print("A MD simulation in the NVT ensemble will be performed.")
-
     dynamics_object = init_md(atoms_object, ensemble, thermostat, T_init, \
-    seed, stationary, zero_rotation, dt, smass, num_chains)
+    pressure, pfactor, seed, stationary, zero_rotation, dt, smass, num_chains)
 
     if not dynamics_object:
       print("The MD dynamics object could not be initialized. Aborting with exit code -4 ...")
-      print("")
       sys.exit(-4)
+
+    if ensemble == "nvt":
+      print("A MD simulation in the NVT ensemble will be performed.")
+      print("Thermostat:             ", thermostat)
+      if thermostat == "nose-hoover":
+        print("Number of chains:       ", num_chains)
+      print("Temperature (K):        ", T_init)
+      print("Smass (fs):             ", smass)
+      print("Time step dt:           ", dt)
+      print("Total number of steps:  ", num_steps)
+      print("Write out frequency:    ", num_freq)
+    elif ensemble == "npt":
+      print("A MD simulation in the NpT ensemble will be performed.")
+      print("Temperature (K):        ", T_init)
+      print("External pressure (bar):", pressure)
+      print("Smass (fs):             ", smass)
+      print("Pfactor (GPa*fs^2):     ", pfactor)
+      print("Time step dt:           ", dt)
+      print("Total number of steps:  ", num_steps)
+      print("Write out frequency:    ", num_freq)
+    print("")
 
     # Run the MD simulation
     print("Entering MD loop ...")

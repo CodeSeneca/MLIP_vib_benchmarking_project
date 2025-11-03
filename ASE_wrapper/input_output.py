@@ -43,12 +43,17 @@ def read_input_file(input_filename):
   device="cpu"
 
   # Master Keyword to activate the MD routine
-  # available are: NVT
+  # available are: NVT, NpT
   ensemble = None
   # The desired initial temperature in K
   # The desired thermostat
   thermostat = "nose-hoover"
+  # Initial temperature
   T_init = 300.0
+  # Desired external pressure in bar
+  pressure = 1.0
+  # Constant in the Parrinello-Rahman Barostat differential equation (in GPa*fs**2)
+  pfactor = 2e6
   # The desired total number of MD steps
   num_steps = 100
   # The desired MD time step in fs
@@ -143,6 +148,30 @@ def read_input_file(input_filename):
               uma_model = next_line_split[1]
             if next_line_split[0] == "task":
               uma_task = next_line_split[1]
+            if next_line_split[0] == "device":
+              device = next_line_split[1]
+
+        elif pes_method == "orb" and line_list[0] == "orb" and line_list[1] == "{":
+          next_line = "xxxx"
+          while next_line != "}":
+            next_line = input_file.readline().rstrip()
+            next_line_split = next_line.split()
+            if next_line_split[0] == "device":
+              device = next_line_split[1]
+
+        elif ensemble == "npt" and line_list[0] == "npt" and line_list[1] == "{":
+          next_line = "xxxx"
+          while next_line != "}":
+            next_line = input_file.readline().rstrip()
+            next_line_split = next_line.split()
+            if next_line_split[0] == "temperature":
+              T_init = float(next_line_split[1])
+            if next_line_split[0] == "smass":
+              smass = int(next_line_split[1])
+            if next_line_split[0] == "pressure":
+              pressure = float(next_line_split[1])
+            if next_line_split[0] == "pfactor":
+              pfactor = float(next_line_split[1])
 
   except FileNotFoundError:
     print("")
@@ -151,8 +180,8 @@ def read_input_file(input_filename):
     sys.exit(-2)
 
   return pes_method, mace_mlip_type, mace_mlip_file, uma_model, uma_task, \
-  ensemble, thermostat, T_init, num_steps, dt, num_freq, smass, num_chains, \
-  seed, dispersion, stationary, zero_rotation, device
+  ensemble, thermostat, T_init, pressure, pfactor, num_steps, dt, num_freq, \
+  smass, num_chains, seed, dispersion, stationary, zero_rotation, device
 
 def read_atoms(file_type):
   """Read in the geometry from the POSCAR file and return an atoms object

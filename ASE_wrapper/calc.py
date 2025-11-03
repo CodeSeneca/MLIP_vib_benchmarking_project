@@ -56,6 +56,28 @@ uma_task, dispersion, device):
 
     # Add the Grimme D3 correction manually
     if dispersion:
+      from ase.calculators.mixing import SumCalculator
+      from torch_dftd.torch_dftd3_calculator import TorchDFTD3Calculator as DFTD3
+
+      dft_d3_calc = DFTD3(atoms=atoms, device=device, damping="bj")
+      print("")
+      print("Pytorch implementation of DFTD3 initialized.")
+      combined_calc = SumCalculator([calc, dft_d3_calc])
+      atoms.calc = combined_calc
+    else:
+      atoms.calc = calc
+
+  if pes_method == "orb":
+    from orb_models.forcefield import pretrained
+    from orb_models.forcefield.calculator import ORBCalculator
+
+    orbff = pretrained.orb_v3_conservative_inf_omat(device=device, precision="float32-high")
+    calc = ORBCalculator(orbff, device=device)
+
+    if dispersion:
+      from ase.calculators.mixing import SumCalculator
+      from torch_dftd.torch_dftd3_calculator import TorchDFTD3Calculator as DFTD3
+
       dft_d3_calc = DFTD3(atoms=atoms, device=device, damping="bj")
       print("")
       print("Pytorch implementation of DFTD3 initialized.")
