@@ -1,0 +1,36 @@
+# Sample input file for a MD simulation with the Nose-Hoover Chain Thermostat
+# in the NVT ensemble
+
+# The method that sould be used to calculate energies and gradients
+pes orb
+# Apply the Grimme D3 dispersion correction
+dispersion
+
+orb {
+  # Cuda or cpu
+  device cuda
+}
+
+# ensemble activates the MD routine
+ensemble nvt
+steps 11000
+dt 1.0
+# Write out frequency (every Nth step energies and gradients are written)
+steps_freq 1
+
+# Seed for choosing the initial velocities
+# seed 15876
+# Remove translation of the center-of-mass
+stationary
+# Remove rotation around the center-of-mass
+zero_rotation
+
+nvt {
+  temperature 300
+  thermostat nose-hoover
+  # Fictious mass of the additional degree of freedom s
+  smass 40
+  # Number of chains in the Nose-Hoove Chain Thermostat
+  chains 3
+}
+
