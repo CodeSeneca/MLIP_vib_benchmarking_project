@@ -1,0 +1,46 @@
+# Sample input file for a MD simulation with the Nose-Hoover Chain Thermostat
+# and the Martyna-Tobias-Klein Barostat in the NpT ensemble
+
+# The method that sould be used to calculate energies and gradients
+pes mace
+# Apply the Grimme D3 dispersion correction
+dispersion
+
+mace {
+  # Type of the MACE model
+  # mp:   foundation models trained on Materials Project data
+  # omol: foundation models trained on OMOL data
+  mlip_type mp
+  # Path to the MACE model
+  mlip_file /home/hpc/b146dc/b146dc13/progs/MLIP_vib_benchmarking_project/MACE_models/mace-mpa-0-medium.model
+  # Cuda or cpu
+  device cuda
+}
+
+# ensemble activates the MD routine
+ensemble npt
+steps 10000
+dt 1.0
+# Write out frequency (every Nth step energies and gradients are written)
+steps_freq 1
+
+# Seed for choosing the initial velocities
+seed 15876
+# Remove translation of the center-of-mass
+stationary
+# Remove rotation around the center-of-mass
+zero_rotation
+
+npt {
+  method isotropic_mtk
+  temperature 573
+  pressure 1.0
+  # Fictious mass of the additional degree of freedom s
+  smass 100
+  # Characteristic time scale of the MTK Barostat
+  pdamp 1000
+  # Number of Chains in Thermostat and Barostat
+  tchain 3
+  pchain 3
+}
+
