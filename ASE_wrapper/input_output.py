@@ -45,10 +45,11 @@ def read_input_file(input_filename):
   # Master Keyword to activate the MD routine
   # available are: NVT, NpT
   ensemble = None
-  # The desired initial temperature in K
-  # The desired thermostat
+  # The desired NVT method
   thermostat = "nose-hoover"
-  # Initial temperature
+  # The desired NpT method
+  npt_method = "isotropic_mtk"
+  # The desired initial temperature in K
   T_init = 300.0
   # Desired external pressure in bar
   pressure = 1.0
@@ -62,9 +63,13 @@ def read_input_file(input_filename):
   num_freq = 1
   # The fictious mass of the Nose-Hoover Chain Thermostat (as multiples of time steps)
   smass = 40.0
+  # The characteristic time scale for the barostat in ASE time units
+  pdamp = 1000
   # The chain length of the Nose-Hoover Chain Thermostat
   # NB: MDALGO = 2 IN VASP USES THE CLASSICAL NOSE-HOOVER THERMOSTAT WITHOUT CHAINS
-  num_chains = 3 # default is 3 in ASE
+  tchain = 3 # default is 3 in ASE
+  # The chain length of the MTK barostat
+  pchain = 3
   # Random seed for initialization of the velocities
   seed = None
   # Determine if the Grimme D3 dispersion correction should be used
@@ -110,8 +115,8 @@ def read_input_file(input_filename):
         # form: nvt {
         # temperature ...
         # thermostat ...
-        # smass
-        # chains
+        # smass ...
+        # tchain ...
         # }
         elif ensemble == "nvt" and line_list[0] == "nvt" and line_list[1] == "{":
           next_line = "xxxx"
@@ -124,8 +129,8 @@ def read_input_file(input_filename):
               thermostat = next_line_split[1]
             if next_line_split[0] == "smass":
               smass = int(next_line_split[1])
-            if next_line_split[0] == "chains":
-              num_chains = int(next_line_split[1])
+            if next_line_split[0] == "tchain":
+              tchain = int(next_line_split[1])
 
         elif pes_method == "mace" and line_list[0] == "mace" and line_list[1] == "{":
           next_line = "xxxx"
@@ -164,6 +169,8 @@ def read_input_file(input_filename):
           while next_line != "}":
             next_line = input_file.readline().rstrip()
             next_line_split = next_line.split()
+            if next_line_split[0] == "method":
+              npt_method = next_line_split[1]
             if next_line_split[0] == "temperature":
               T_init = float(next_line_split[1])
             if next_line_split[0] == "smass":
@@ -172,6 +179,12 @@ def read_input_file(input_filename):
               pressure = float(next_line_split[1])
             if next_line_split[0] == "pfactor":
               pfactor = float(next_line_split[1])
+            if next_line_split[0] == "pdamp":
+              pdamp = int(next_line_split[1])
+            if next_line_split[0] == "tchain":
+              tchain = int(next_line_split[1])
+            if next_line_split[0] == "pchain":
+              pchain = int(next_line_split[1])
 
   except FileNotFoundError:
     print("")
@@ -181,7 +194,8 @@ def read_input_file(input_filename):
 
   return pes_method, mace_mlip_type, mace_mlip_file, uma_model, uma_task, \
   ensemble, thermostat, T_init, pressure, pfactor, num_steps, dt, num_freq, \
-  smass, num_chains, seed, dispersion, stationary, zero_rotation, device
+  smass, tchain, seed, dispersion, stationary, zero_rotation, device, pdamp, \
+  pchain, npt_method
 
 def read_atoms(file_type):
   """Read in the geometry from the POSCAR file and return an atoms object

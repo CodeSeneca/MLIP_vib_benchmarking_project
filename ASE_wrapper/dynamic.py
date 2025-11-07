@@ -25,8 +25,8 @@ if __name__ == "__main__":
   # Read in the input file
   pes_method, mace_mlip_type, mace_mlip_file, uma_model, uma_task, ensemble, \
   thermostat, T_init, pressure, pfactor, num_steps, dt, num_freq, smass, \
-  num_chains, seed, dispersion, stationary, zero_rotation, \
-  device = read_input_file(input_file)
+  tchain, seed, dispersion, stationary, zero_rotation, \
+  device, pdamp, pchain, npt_method = read_input_file(input_file)
 
   # Print information about the input parameters given
   print("")
@@ -69,7 +69,8 @@ if __name__ == "__main__":
     from md import init_md, run_md
 
     dynamics_object = init_md(atoms_object, ensemble, thermostat, T_init, \
-    pressure, pfactor, seed, stationary, zero_rotation, dt, smass, num_chains)
+    pressure, pfactor, seed, stationary, zero_rotation, dt, smass, tchain, \
+    pdamp, pchain, npt_method)
 
     if not dynamics_object:
       print("The MD dynamics object could not be initialized. Aborting with exit code -4 ...")
@@ -82,15 +83,42 @@ if __name__ == "__main__":
         print("Number of chains:       ", num_chains)
       print("Temperature (K):        ", T_init)
       print("Smass (fs):             ", smass)
+      print("Tchain:                 ", tchain)
       print("Time step dt:           ", dt)
       print("Total number of steps:  ", num_steps)
       print("Write out frequency:    ", num_freq)
-    elif ensemble == "npt":
+    elif ensemble == "npt" and npt_method == "parrinello_rahman":
       print("A MD simulation in the NpT ensemble will be performed.")
       print("Temperature (K):        ", T_init)
       print("External pressure (bar):", pressure)
       print("Smass (fs):             ", smass)
       print("Pfactor (GPa*fs^2):     ", pfactor)
+      print("Time step dt:           ", dt)
+      print("Total number of steps:  ", num_steps)
+      print("Write out frequency:    ", num_freq)
+    elif ensemble == "npt" and npt_method == "isotropic_mtk":
+      print("A MD simulation in the NpT ensemble will be performed.")
+      print("Integrator:              Isotropic Martyna-Tobias-Klein (MTK)")
+      print("Temperature (K):        ", T_init)
+      print("External pressure (bar):", pressure)
+      print("External pressure (ev/A^3):", pressure*6.241509074e-7)
+      print("Smass (fs):             ", smass)
+      print("Pdamp (fs):             ", pdamp)
+      print("Tchain:                 ", tchain)
+      print("Pchain:                 ", pchain)
+      print("Time step dt:           ", dt)
+      print("Total number of steps:  ", num_steps)
+      print("Write out frequency:    ", num_freq)
+    elif ensemble == "npt" and npt_method == "mtk":
+      print("A MD simulation in the NpT ensemble will be performed.")
+      print("Integrator:              Martyna-Tobias-Klein (MTK)")
+      print("Temperature (K):        ", T_init)
+      print("External pressure (bar):", pressure)
+      print("External pressure (ev/A^3):", pressure*6.241509074e-7)
+      print("Smass (fs):             ", smass)
+      print("Pdamp (fs):             ", pdamp)
+      print("Tchain:                 ", tchain)
+      print("Pchain:                 ", pchain)
       print("Time step dt:           ", dt)
       print("Total number of steps:  ", num_steps)
       print("Write out frequency:    ", num_freq)

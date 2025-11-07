@@ -5,6 +5,7 @@ from ase.io import write
 from ase.md.velocitydistribution import MaxwellBoltzmannDistribution as Maxwell
 from ase.md.velocitydistribution import Stationary, ZeroRotation
 from ase.md.nose_hoover_chain import NoseHooverChainNVT as NoseHoover
+from ase.md.nose_hoover_chain import IsotropicMTKNPT, MTKNPT
 from ase.md.npt import NPT
 
 ##############################################################################
@@ -60,7 +61,7 @@ def print_md_step(logfile, traj_file, md_step, atoms, num_freq):
   density = mass_total/volume * 1.66053906660
   density_aver += density
 
-  stress = atoms.get_stress(include_ideal_gas=True)/units.GPa
+  stress = atoms.get_stress(include_ideal_gas=False)/units.GPa
   # Negative stress means positive pressure -> compression
   pressure_trace = -(stress[0] + stress[1] + stress[2])/3.0
   pressure_aver += pressure_trace
@@ -76,7 +77,7 @@ def print_md_step(logfile, traj_file, md_step, atoms, num_freq):
     write(conf_file, atoms, format="vasp")
 
 def init_md(atoms, ensemble, thermostat, T_init, pressure, pfactor, seed, \
-stationary, zero_rotation, dt, smass, num_chains):
+stationary, zero_rotation, dt, smass, tchain, pdamp, pchain, npt_method):
   """Initialize the MD simulation"""
 
   # Initialize the velocities randomly via a Maxwell-Boltzmann distribution
@@ -111,16 +112,37 @@ stationary, zero_rotation, dt, smass, num_chains):
                      tdamp=smass*units.fs,
                      tchain=num_chains)
 
-  # Combined Nose-Hoover and Parinello-Rahman dynamics, suggested by Melchionna et al.
-  if ensemble == "npt":
-    dyn = NPT(atoms=atoms,
-              timestep=dt*units.fs,
+  # Combined Nose-Hoover and Parrinello-Rahman dynamics, suggested by Melchionna et al.
+  elif ensemble == "npt" and npt_method == "parrinello_rahman":
+    dyn = NPT(atoms,
+              dt*units.fs,
               temperature_K=T_init,
               externalstress=pressure*units.bar,  # isotropic pressure equals (-p, -p, -p, 0, 0, 0), positive p means compression
               ttime=smass*units.fs,
-              pfactor = pfactor*units.GPa*(units.fs**2),
+              pfactor=pfactor*units.GPa*(units.fs**2),
               mask=[[1,0,0],[0,1,0],[0,0,1]])  # Change the volume V but not its shape during the NpT simulation (isotropic changes)
-  
+
+  # Nose-Hoover Chain Thermostat with its pressure extension by Martyna, Tobias and Klein
+  elif ensemble == "npt" and npt_method == "isotropic_mtk":
+    dyn = IsotropicMTKNPT(atoms=atoms,
+                          timestep=dt*units.fs,
+                          temperature_K=T_init,
+                          pressure_au=pressure*6.241509074e-7,  # in ev/A^3
+                          tdamp=smass,
+                          pdamp=pdamp,
+                          tchain=tchain,
+                          pchain=pchain)
+
+  elif ensemble == "npt" and npt_method == "mtk":
+    dyn = MTKNPT(atoms=atoms,
+                 timestep=dt*units.fs,
+                 temperature_K=T_init,
+                 pressure_au=pressure*6.241509074e-7,  # in eV/A^3
+                 tdamp=smass*units.fs,
+                 pdamp=pdamp*units.fs,
+                 tchain=tchain,
+                 pchain=pchain)
+
   return dyn
 
 def run_md(atoms_object, dynamics_object, num_steps, num_freq):
@@ -128,7 +150,7 @@ def run_md(atoms_object, dynamics_object, num_steps, num_freq):
 
   with open(logfile_name, "w") as logfile, open(traj_filename, "w") as traj_file:
 
-    logfile.write("# Step     pot.energy (eV)    kin.energy (eV)   tot.energy (eV)   temperature (K)  volume(A^3)  density(g/cm^3)  pressure (bar)\n")
+    logfile.write("# Step     pot.energy (eV)    kin.energy (eV)   tot.energy (eV)   temperature (K)  volume(A^3)  density(g/cm^3)  pressure (GaPa)\n")
     logfile.write("\n")
 
 
@@ -160,8 +182,8 @@ def calc_aver(num_steps, num_freq, logfile):
   etot_aver = etot_aver / (num_steps/num_freq + 1)
   logfile.write("\n")
   logfile.write(f"# The average temperature of the MD run is:                                {temp_aver:.5f} K\n")
-  logfile.write(f"# The average external pressure of the MD run is:                          {pressure_aver:.5f} bar\n")
-  logfile.write(f"# The average volume of the MD run is:                                     {pressure_aver:.5f} A^3\n")
-  logfile.write(f"# The average density of the MD run is:                                    {pressure_aver:.5f} g/cm^3\n")
-  logfile.write(f"# The average total energy of the MD run is (i.e. the internal energy U):  {pressure_aver:.5f} g/cm^3\n")
+  logfile.write(f"# The average external pressure of the MD run is:                          {pressure_aver:.5f} GaPa\n")
+  logfile.write(f"# The average volume of the MD run is:                                     {volume_aver:.5f} A^3\n")
+  logfile.write(f"# The average density of the MD run is:                                    {density_aver:.5f} g/cm^3\n")
+  logfile.write(f"# The average total energy of the MD run is (i.e. the internal energy U):  {etot_aver:.5f} eV\n")
 

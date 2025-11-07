@@ -33,6 +33,6 @@ nvt {
   # Fictious mass of the additional degree of freedom s
   smass 40
   # Number of chains in the Nose-Hoove Chain Thermostat
-  chains 3
+  tchain 3
 }
 
