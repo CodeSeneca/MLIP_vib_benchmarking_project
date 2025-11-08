@@ -5,7 +5,7 @@ from ase.io import write
 from ase.md.velocitydistribution import MaxwellBoltzmannDistribution as Maxwell
 from ase.md.velocitydistribution import Stationary, ZeroRotation
 from ase.md.nose_hoover_chain import NoseHooverChainNVT as NoseHoover
-from ase.md.nose_hoover_chain import IsotropicMTKNPT, MTKNPT
+from ase.md.nose_hoover_chain import IsotropicMTKNPT as MTKNPT  # , changed to as
 from ase.md.npt import NPT
 
 ##############################################################################
@@ -110,7 +110,7 @@ stationary, zero_rotation, dt, smass, tchain, pdamp, pchain, npt_method):
                      timestep=dt*units.fs,
                      temperature_K=T_init,
                      tdamp=smass*units.fs,
-                     tchain=num_chains)
+                     tchain=tchain)  #num_chains)
 
   # Combined Nose-Hoover and Parrinello-Rahman dynamics, suggested by Melchionna et al.
   elif ensemble == "npt" and npt_method == "parrinello_rahman":

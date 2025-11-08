@@ -1,8 +1,10 @@
+#!/usr/bin/env python3
 ###############################################################################
 #####
 ##### Author: Maximilian Bechtel <maxi.bechtel@fau.de>
 #####
 ###############################################################################
+
 
 import sys
 from calc import set_pes
@@ -23,10 +25,12 @@ if __name__ == "__main__":
     sys.exit(-1)
 
   # Read in the input file
-  pes_method, mace_mlip_type, mace_mlip_file, uma_model, uma_task, ensemble, \
+  pes_method, mace_mlip_type, mace_mlip_file, uma_model, uma_task, gptff_file, ensemble, \
   thermostat, T_init, pressure, pfactor, num_steps, dt, num_freq, smass, \
   tchain, seed, dispersion, stationary, zero_rotation, \
   device, pdamp, pchain, npt_method = read_input_file(input_file)
+  # Set number of chains in the Nose-Hoover chain to three
+  num_chains=3
 
   # Print information about the input parameters given
   print("")
@@ -42,6 +46,8 @@ if __name__ == "__main__":
     print("Performed task:", uma_task)
   elif pes_method == "orb":
     print("Currently only the orb_v3_conservative_inf_omat model is available")
+  elif pes_method == "gptff":
+    print("Used GPTFF model:",gptff_file)
   else:
     print("No suitable model given. Aborting with exit code -5 ...")
   # if uma_task not "oc20" or uma_task not "omat" or uma_task not "omol" or uma_task not "odac" or uma_task not "omc":
@@ -60,7 +66,7 @@ if __name__ == "__main__":
   # Read in the initial geometry and set the calculator
   atoms_object = read_atoms("POSCAR")
   set_pes(atoms_object, pes_method, mace_mlip_type, mace_mlip_file, \
-  uma_model, uma_task, dispersion, device)
+  uma_model, uma_task, gptff_file, dispersion, device)
 
   # Initialize the MD simulation and create a dynamics object for it
   # but only if ensemble as Master Keyword is set

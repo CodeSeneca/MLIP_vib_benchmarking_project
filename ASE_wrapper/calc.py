@@ -1,5 +1,5 @@
 def set_pes(atoms, pes_method, mace_mlip_type, mace_mlip_file, uma_model, \
-uma_task, dispersion, device):
+uma_task, gptff_file, dispersion, device):
   """Set the Calculator used for all calculations"""
 
   # Define a MACE model with possible D3 dispersion correction
@@ -85,4 +85,29 @@ uma_task, dispersion, device):
       atoms.calc = combined_calc
     else:
       atoms.calc = calc
+
+
+  if pes_method == "gptff":
+    from gptff.model.mpredict import ASECalculator
+    from pymatgen.core import Structure
+    from pymatgen.io.ase import AseAtomsAdaptor
+
+    model_weight = gptff_file
+    p = ASECalculator(model_weight, device)
+    adp = AseAtomsAdaptor()
+    struc = Structure.from_file('POSCAR')
+    atoms = adp.get_atoms(struc)
+#    atoms.set_calculator(p)
+    atoms.calc=p
+    #if dispersion:
+    #  from ase.calculators.mixing import SumCalculator
+    #  from torch_dftd.torch_dftd3_calculator import TorchDFTD3Calculator as DFTD3
+#
+#      dft_d3_calc = DFTD3(atoms=atoms, device=device, damping="bj")
+#      print("")
+#      print("Pytorch implementation of DFTD3 initialized.")
+#      combined_calc = SumCalculator([calc, dft_d3_calc])
+#      atoms.calc = combined_calc
+#    else:
+#      atoms.calc = calc
 

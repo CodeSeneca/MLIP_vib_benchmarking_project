@@ -40,6 +40,10 @@ def read_input_file(input_filename):
   #   odac :  metal organic frameworks (MOFs)
   #   omc  :  molecular crystals
   uma_task = "omol"
+  # For GPTFF: the file with the model weigths (currently only gptff_v1.pth 
+  #   and gptff_v2.pth available)
+  gptff_file = None
+
   device="cpu"
 
   # Master Keyword to activate the MD routine
@@ -164,6 +168,15 @@ def read_input_file(input_filename):
             if next_line_split[0] == "device":
               device = next_line_split[1]
 
+        elif pes_method == "gptff" and line_list[0] == "gptff" and line_list[1] == "{":
+          next_line = "xxxx"
+          while next_line != "}":
+            next_line = input_file.readline().rstrip()
+            next_line_split = next_line.split()
+            if next_line_split[0] == "mlip_file":
+              gptff_file = next_line_split[1]
+            if next_line_split[0] == "device":
+              device = next_line_split[1]
         elif ensemble == "npt" and line_list[0] == "npt" and line_list[1] == "{":
           next_line = "xxxx"
           while next_line != "}":
@@ -193,14 +206,17 @@ def read_input_file(input_filename):
     sys.exit(-2)
 
   return pes_method, mace_mlip_type, mace_mlip_file, uma_model, uma_task, \
-  ensemble, thermostat, T_init, pressure, pfactor, num_steps, dt, num_freq, \
+  gptff_file, ensemble, thermostat, T_init, pressure, pfactor, num_steps, dt, num_freq, \
   smass, tchain, seed, dispersion, stationary, zero_rotation, device, pdamp, \
   pchain, npt_method
 
 def read_atoms(file_type):
   """Read in the geometry from the POSCAR file and return an atoms object
   from it"""
-
+#  if pes_method == "gptff":
+#     atoms = adp.get_atoms(file_type)
+#  else:
   atoms = read(file_type)
+
   return atoms
 
