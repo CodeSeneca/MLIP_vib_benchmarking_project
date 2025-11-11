@@ -1,7 +1,7 @@
 import numpy as np
 
 def set_pes(atoms, pes_method, mace_mlip_type, mace_mlip_file, uma_model, \
-uma_task, dispersion, device):
+uma_task, gptff_file, dispersion, device):
   """Set the Calculator used for all calculations"""
 
   # Define a MACE model with possible D3 dispersion correction
@@ -88,6 +88,7 @@ uma_task, dispersion, device):
     else:
       atoms.calc = calc
 
+<<<<<<< HEAD
 def calc_averages():
   """Calculate average quantaties from md.log file written by a MD simulation"""
 
@@ -123,4 +124,30 @@ def calc_averages():
   print(f"The average density of the MD run is:                                    {density_mean:.5f} g/cm^3")
   print(f"The average total energy of the MD run is (i.e. the internal energy U):  {etot_mean:.5f} eV")
   print("")
+=======
+
+  if pes_method == "gptff":
+    from gptff.model.mpredict import ASECalculator
+    from pymatgen.core import Structure
+    from pymatgen.io.ase import AseAtomsAdaptor
+
+    model_weight = gptff_file
+    p = ASECalculator(model_weight, device)
+    adp = AseAtomsAdaptor()
+    struc = Structure.from_file('POSCAR')
+    atoms = adp.get_atoms(struc)
+#    atoms.set_calculator(p)
+    atoms.calc=p
+    #if dispersion:
+    #  from ase.calculators.mixing import SumCalculator
+    #  from torch_dftd.torch_dftd3_calculator import TorchDFTD3Calculator as DFTD3
+#
+#      dft_d3_calc = DFTD3(atoms=atoms, device=device, damping="bj")
+#      print("")
+#      print("Pytorch implementation of DFTD3 initialized.")
+#      combined_calc = SumCalculator([calc, dft_d3_calc])
+#      atoms.calc = combined_calc
+#    else:
+#      atoms.calc = calc
+>>>>>>> 5ece41147f7a2cc36c689fab1f19dbf62733849c
 
