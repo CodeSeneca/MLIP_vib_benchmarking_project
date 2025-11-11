@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+
 ###############################################################################
 #####
 ##### Author: Maximilian Bechtel <maxi.bechtel@fau.de>
@@ -28,13 +29,13 @@ if __name__ == "__main__":
     print("")
     sys.exit(-1)
 
-<<<<<<< HEAD
   if mode == "calculate":
     # Read in the input file
-    pes_method, mace_mlip_type, mace_mlip_file, uma_model, uma_task, ensemble, \
-    thermostat, T_init, pressure, pfactor, num_steps, dt, num_freq, smass, \
-    tchain, seed, dispersion, stationary, zero_rotation, \
-    device, pdamp, pchain, npt_method = read_input_file(input_file)
+    pes_method, mace_mlip_type, mace_mlip_file, uma_model, uma_task, \
+    gptff_file, ensemble, thermostat, T_init, pressure, pfactor, \
+    num_steps, dt, num_freq, smass, tchain, seed, dispersion, stationary, \
+    zero_rotation, device, pdamp, pchain, \
+    npt_method = read_input_file(input_file)
 
     # Print information about the input parameters given
     print("")
@@ -63,7 +64,7 @@ if __name__ == "__main__":
     else:
       print("No suitable acceleration method given (cpu or cuda). Aborting with exit code -3 ...")
       sys.exit(-3)
-=======
+
   # Read in the input file
   pes_method, mace_mlip_type, mace_mlip_file, uma_model, uma_task, gptff_file, ensemble, \
   thermostat, T_init, pressure, pfactor, num_steps, dt, num_freq, smass, \
@@ -168,13 +169,12 @@ if __name__ == "__main__":
       print("Time step dt:           ", dt)
       print("Total number of steps:  ", num_steps)
       print("Write out frequency:    ", num_freq)
->>>>>>> 5ece41147f7a2cc36c689fab1f19dbf62733849c
     print("")
 
     # Read in the initial geometry and set the calculator
     atoms_object = read_atoms("POSCAR")
     set_pes(atoms_object, pes_method, mace_mlip_type, mace_mlip_file, \
-    uma_model, uma_task, dispersion, device)
+    uma_model, uma_task, gptff_file, dispersion, device)
 
     # Initialize the MD simulation and create a dynamics object for it
     # but only if ensemble as Master Keyword is set

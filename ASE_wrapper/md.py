@@ -110,11 +110,7 @@ stationary, zero_rotation, dt, smass, tchain, pdamp, pchain, npt_method):
                      timestep=dt*units.fs,
                      temperature_K=T_init,
                      tdamp=smass*units.fs,
-<<<<<<< HEAD
                      tchain=tchain)
-=======
-                     tchain=tchain)  #num_chains)
->>>>>>> 5ece41147f7a2cc36c689fab1f19dbf62733849c
 
   # Combined Nose-Hoover and Parrinello-Rahman dynamics, suggested by Melchionna et al.
   elif ensemble == "npt" and npt_method == "parrinello_rahman":
@@ -186,7 +182,7 @@ def calc_aver(num_steps, num_freq, logfile):
   etot_aver = etot_aver / (num_steps/num_freq + 1)
   logfile.write("\n")
   logfile.write(f"# The average temperature of the MD run is:                                {temp_aver:.5f} K\n")
-  logfile.write(f"# The average external pressure of the MD run is:                          {pressure_aver:.5f} GaPa\n")
+  logfile.write(f"# The average external pressure of the MD run is:                          {pressure_aver*10000:.5f} bar\n")
   logfile.write(f"# The average volume of the MD run is:                                     {volume_aver:.5f} A^3\n")
   logfile.write(f"# The average density of the MD run is:                                    {density_aver:.5f} g/cm^3\n")
   logfile.write(f"# The average total energy of the MD run is (i.e. the internal energy U):  {etot_aver:.5f} eV\n")
