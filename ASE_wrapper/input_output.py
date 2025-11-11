@@ -181,6 +181,7 @@ def read_input_file(input_filename):
               gptff_file = next_line_split[1]
             if next_line_split[0] == "device":
               device = next_line_split[1]
+
         elif ensemble == "npt" and line_list[0] == "npt" and line_list[1] == "{":
           next_line = "xxxx"
           while next_line != "}":
