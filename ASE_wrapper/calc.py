@@ -1,3 +1,5 @@
+import numpy as np
+
 def set_pes(atoms, pes_method, mace_mlip_type, mace_mlip_file, uma_model, \
 uma_task, dispersion, device):
   """Set the Calculator used for all calculations"""
@@ -85,4 +87,40 @@ uma_task, dispersion, device):
       atoms.calc = combined_calc
     else:
       atoms.calc = calc
+
+def calc_averages():
+  """Calculate average quantaties from md.log file written by a MD simulation"""
+
+  data = np.genfromtxt("md.log")
+
+  # Etot
+  etot = data[:,3]
+  etot_mean = np.mean(etot)
+  etot_std = np.std(etot)
+  # Temperature
+  temperature = data[:,4]
+  temperature_mean = np.mean(temperature)
+  temperature_std = np.std(temperature)
+  # Volume
+  volume = data[:,5]
+  volume_mean = np.mean(volume)
+  volume_std = np.std(volume)
+  # Density
+  density = data[:,6]
+  density_mean = np.mean(density)
+  density_std = np.std(density)
+  # Pressure
+  pressure = data[:,7]
+  pressure_mean = np.mean(pressure)
+  pressure_std = np.std(pressure)
+
+  print("")
+  print(f"Performing statistics over {len(etot)} MD time steps")
+  print("======================================================================================================")
+  print(f"The average temperature of the MD run is:                                {temperature_mean:.5f} K")
+  print(f"The average pressure of the MD run is:                                   {pressure_mean*10000:.5f} bar")
+  print(f"The average volume of the MD run is:                                     {volume_mean:.5f} A^3")
+  print(f"The average density of the MD run is:                                    {density_mean:.5f} g/cm^3")
+  print(f"The average total energy of the MD run is (i.e. the internal energy U):  {etot_mean:.5f} eV")
+  print("")
 

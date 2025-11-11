@@ -6,12 +6,16 @@ def read_command_line_arguments():
 
   # Filename of the input file
   input_file = None
+  mode = None
 
   for arg in sys.argv:
     if arg[0:7] == "-input=":
+      mode = "calculate"
       input_file = arg[7:]
+    if arg[0:8] == "-average":
+      mode = "average"
 
-  return input_file
+  return mode, input_file
 
 def read_input_file(input_filename):
   """Read in the input file and set all given input parameters"""

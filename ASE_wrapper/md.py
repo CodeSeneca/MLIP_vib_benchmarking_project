@@ -61,7 +61,7 @@ def print_md_step(logfile, traj_file, md_step, atoms, num_freq):
   density = mass_total/volume * 1.66053906660
   density_aver += density
 
-  stress = atoms.get_stress(include_ideal_gas=False)/units.GPa
+  stress = atoms.get_stress(include_ideal_gas=True)/units.GPa
   # Negative stress means positive pressure -> compression
   pressure_trace = -(stress[0] + stress[1] + stress[2])/3.0
   pressure_aver += pressure_trace
@@ -110,7 +110,7 @@ stationary, zero_rotation, dt, smass, tchain, pdamp, pchain, npt_method):
                      timestep=dt*units.fs,
                      temperature_K=T_init,
                      tdamp=smass*units.fs,
-                     tchain=num_chains)
+                     tchain=tchain)
 
   # Combined Nose-Hoover and Parrinello-Rahman dynamics, suggested by Melchionna et al.
   elif ensemble == "npt" and npt_method == "parrinello_rahman":
@@ -128,8 +128,8 @@ stationary, zero_rotation, dt, smass, tchain, pdamp, pchain, npt_method):
                           timestep=dt*units.fs,
                           temperature_K=T_init,
                           pressure_au=pressure*6.241509074e-7,  # in ev/A^3
-                          tdamp=smass,
-                          pdamp=pdamp,
+                          tdamp=smass*units.fs,
+                          pdamp=pdamp*units.fs,
                           tchain=tchain,
                           pchain=pchain)
 
