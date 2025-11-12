@@ -6,10 +6,8 @@
 #####
 ###############################################################################
 
-
 import sys
-from calc import set_pes, calc_averages
-from input_output import read_command_line_arguments, read_input_file, read_atoms
+from input_output import read_command_line_arguments
 
 if __name__ == "__main__":
   ##############################################################################
@@ -19,17 +17,28 @@ if __name__ == "__main__":
   # Process command line arguments
   mode, input_file = read_command_line_arguments()
 
-  if mode == "average":
-    calc_averages()
-
-  if mode == "calculate" and not input_file:
+  if not mode:
     print("")
-    print("No suitable input file given.")
-    print("Usage: dynamic.py -input=[input_filename]")
+    print("Usage: dynamic.py [options]\n")
+    print("The options are:")
+    print("-input=[input_file]:  Run a calculation specified in [input_file]")
+    print("-average:             Determine average values from a previous MD run")
+    print("                      stored in md.log")
     print("")
     sys.exit(-1)
+  elif mode == "average":
+    from calc import calc_averages
+    calc_averages()
+  elif mode == "calculate" and not input_file:
+    print("")
+    print("No suitable input file given.")
+    print("")
+    sys.exit(-1)
+  elif mode == "calculate":
 
-  if mode == "calculate":
+    from calc import set_pes
+    from input_output import read_input_file, read_atoms
+
     # Read in the input file
     pes_method, mace_mlip_type, mace_mlip_file, uma_model, uma_task, \
     gptff_file, ensemble, thermostat, T_init, pressure, pfactor, \
@@ -68,80 +77,80 @@ if __name__ == "__main__":
       sys.exit(-3)
     print("")
 
-  # Read in the initial geometry and set the calculator
-  atoms_object = read_atoms("POSCAR")
-  set_pes(atoms_object, pes_method, mace_mlip_type, mace_mlip_file, \
-  uma_model, uma_task, gptff_file, dispersion, device)
+    # Read in the initial geometry and set the calculator
+    atoms_object = read_atoms("POSCAR")
+    set_pes(atoms_object, pes_method, mace_mlip_type, mace_mlip_file, \
+    uma_model, uma_task, gptff_file, dispersion, device)
 
-  # Initialize the MD simulation and create a dynamics object for it
-  # but only if ensemble as Master Keyword is set
-  if ensemble == "nvt" or "npt":
+    # Initialize the MD simulation and create a dynamics object for it
+    # but only if ensemble as Master Keyword is set
+    if ensemble == "nvt" or "npt":
 
-    from md import init_md, run_md
+      from md import init_md, run_md
 
-    dynamics_object = init_md(atoms_object, ensemble, thermostat, T_init, \
-    pressure, pfactor, seed, stationary, zero_rotation, dt, smass, tchain, \
-    pdamp, pchain, npt_method)
+      dynamics_object = init_md(atoms_object, ensemble, thermostat, T_init, \
+      pressure, pfactor, seed, stationary, zero_rotation, dt, smass, tchain, \
+      pdamp, pchain, npt_method)
 
-    if not dynamics_object:
-      print("The MD dynamics object could not be initialized. Aborting with exit code -4 ...")
-      sys.exit(-4)
+      if not dynamics_object:
+        print("The MD dynamics object could not be initialized. Aborting with exit code -4 ...")
+        sys.exit(-4)
 
-    if ensemble == "nvt":
-      print("A MD simulation in the NVT ensemble will be performed.")
-      print("Thermostat:             ", thermostat)
-      if thermostat == "nose-hoover":
-        print("Number of chains:       ", tchain)
-      print("Temperature (K):        ", T_init)
-      print("Smass (fs):             ", smass)
-      print("Tchain:                 ", tchain)
-      print("Time step dt:           ", dt)
-      print("Total number of steps:  ", num_steps)
-      print("Write out frequency:    ", num_freq)
-    elif ensemble == "npt" and npt_method == "parrinello_rahman":
-      print("A MD simulation in the NpT ensemble will be performed.")
-      print("Temperature (K):        ", T_init)
-      print("External pressure (bar):", pressure)
-      print("Smass (fs):             ", smass)
-      print("Pfactor (GPa*fs^2):     ", pfactor)
-      print("Time step dt:           ", dt)
-      print("Total number of steps:  ", num_steps)
-      print("Write out frequency:    ", num_freq)
-    elif ensemble == "npt" and npt_method == "isotropic_mtk":
-      print("A MD simulation in the NpT ensemble will be performed.")
-      print("Integrator:              Isotropic Martyna-Tobias-Klein (MTK)")
-      print("Temperature (K):        ", T_init)
-      print("External pressure (bar):", pressure)
-      print("External pressure (ev/A^3):", pressure*6.241509074e-7)
-      print("Smass (fs):             ", smass)
-      print("Pdamp (fs):             ", pdamp)
-      print("Tchain:                 ", tchain)
-      print("Pchain:                 ", pchain)
-      print("Time step dt:           ", dt)
-      print("Total number of steps:  ", num_steps)
-      print("Write out frequency:    ", num_freq)
-    elif ensemble == "npt" and npt_method == "mtk":
-      print("A MD simulation in the NpT ensemble will be performed.")
-      print("Integrator:              Martyna-Tobias-Klein (MTK)")
-      print("Temperature (K):        ", T_init)
-      print("External pressure (bar):", pressure)
-      print("External pressure (ev/A^3):", pressure*6.241509074e-7)
-      print("Smass (fs):             ", smass)
-      print("Pdamp (fs):             ", pdamp)
-      print("Tchain:                 ", tchain)
-      print("Pchain:                 ", pchain)
-      print("Time step dt:           ", dt)
-      print("Total number of steps:  ", num_steps)
-      print("Write out frequency:    ", num_freq)
+      if ensemble == "nvt":
+        print("A MD simulation in the NVT ensemble will be performed.")
+        print("Thermostat:             ", thermostat)
+        if thermostat == "nose-hoover":
+          print("Number of chains:       ", tchain)
+        print("Temperature (K):        ", T_init)
+        print("Smass (fs):             ", smass)
+        print("Tchain:                 ", tchain)
+        print("Time step dt:           ", dt)
+        print("Total number of steps:  ", num_steps)
+        print("Write out frequency:    ", num_freq)
+      elif ensemble == "npt" and npt_method == "parrinello_rahman":
+        print("A MD simulation in the NpT ensemble will be performed.")
+        print("Temperature (K):        ", T_init)
+        print("External pressure (bar):", pressure)
+        print("Smass (fs):             ", smass)
+        print("Pfactor (GPa*fs^2):     ", pfactor)
+        print("Time step dt:           ", dt)
+        print("Total number of steps:  ", num_steps)
+        print("Write out frequency:    ", num_freq)
+      elif ensemble == "npt" and npt_method == "isotropic_mtk":
+        print("A MD simulation in the NpT ensemble will be performed.")
+        print("Integrator:              Isotropic Martyna-Tobias-Klein (MTK)")
+        print("Temperature (K):        ", T_init)
+        print("External pressure (bar):", pressure)
+        print("External pressure (ev/A^3):", pressure*6.241509074e-7)
+        print("Smass (fs):             ", smass)
+        print("Pdamp (fs):             ", pdamp)
+        print("Tchain:                 ", tchain)
+        print("Pchain:                 ", pchain)
+        print("Time step dt:           ", dt)
+        print("Total number of steps:  ", num_steps)
+        print("Write out frequency:    ", num_freq)
+      elif ensemble == "npt" and npt_method == "mtk":
+        print("A MD simulation in the NpT ensemble will be performed.")
+        print("Integrator:              Martyna-Tobias-Klein (MTK)")
+        print("Temperature (K):        ", T_init)
+        print("External pressure (bar):", pressure)
+        print("External pressure (ev/A^3):", pressure*6.241509074e-7)
+        print("Smass (fs):             ", smass)
+        print("Pdamp (fs):             ", pdamp)
+        print("Tchain:                 ", tchain)
+        print("Pchain:                 ", pchain)
+        print("Time step dt:           ", dt)
+        print("Total number of steps:  ", num_steps)
+        print("Write out frequency:    ", num_freq)
 
-    # Run the MD simulation
-    print("")
-    print("Entering MD loop ...")
-    run_md(atoms_object, dynamics_object, num_steps, num_freq)
-  else:
-    print("")
-    print("No suitable calculation type has been given.")
-    print("")
+      # Run the MD simulation
+      print("")
+      print("Entering MD loop ...")
+      run_md(atoms_object, dynamics_object, num_steps, num_freq)
+    else:
+      print("")
+      print("No suitable calculation type has been given.")
+      print("")
 
   print("")
   print("********** dynamic.py EXITED NORMALLY **********")

@@ -1,12 +1,11 @@
 import sys
-from ase.io import read
 
 def read_command_line_arguments():
   """Process the command line arguments given by the user"""
 
   # Filename of the input file
-  input_file = None
   mode = None
+  input_file = None
 
   for arg in sys.argv:
     if arg[0:7] == "-input=":
@@ -218,6 +217,9 @@ def read_input_file(input_filename):
 def read_atoms(file_type):
   """Read in the geometry from the POSCAR file and return an atoms object
   from it"""
+
+  from ase.io import read
+
 #  if pes_method == "gptff":
 #     atoms = adp.get_atoms(file_type)
 #  else:
