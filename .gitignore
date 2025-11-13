@@ -1,6 +1,7 @@
 *.pyc
 *.model
 *.nfs*
+*.swp
 POSCAR
 OUTCAR
 trainset*
