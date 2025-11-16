@@ -32,7 +32,7 @@ conf_filename = "CONTCAR"
 ##### FUNCTIONS
 ##############################################################################
 
-def print_md_step(logfile, traj_file, md_step, atoms, num_freq):
+def print_md_step(logfile, traj_file, md_step, atoms, ensemble, num_freq):
   """Print Epot, Ekin, Etot, temperature T, volume V and density of one MD time step"""
 
   # Use temp_aver and pressure_aver as global variables here
@@ -61,14 +61,20 @@ def print_md_step(logfile, traj_file, md_step, atoms, num_freq):
   density = mass_total/volume * 1.66053906660
   density_aver += density
 
-  stress = atoms.get_stress(include_ideal_gas=True)/units.GPa
-  # Negative stress means positive pressure -> compression
-  pressure_trace = -(stress[0] + stress[1] + stress[2])/3.0
-  pressure_aver += pressure_trace
+  # Stress calculation only for NpT ensemble
+  if ensemble == "npt":
+     stress = atoms.get_stress(include_ideal_gas=True)/units.GPa
+     # Negative stress means positive pressure -> compression
+     pressure_trace = -(stress[0] + stress[1] + stress[2])/3.0
+     pressure_aver += pressure_trace
 
   # Print all calculated values
   md_step = md_step * num_freq
-  logfile.write("    %i        %.5f        %.5f       %.5f       %.5f       %.5f        %.5f        %.5f\n" % (md_step, epot, ekin, etot, temp, volume, density, pressure_trace))
+  if ensemble == "nvt":
+     logfile.write("    %i        %.5f        %.5f       %.5f       %.5f       %.5f        %.5f\n" % (md_step, epot, ekin, etot, temp, volume, density))
+  elif ensemble == "npt":
+     logfile.write("    %i        %.5f        %.5f       %.5f       %.5f       %.5f        %.5f        %.5f\n" % (md_step, epot, ekin, etot, temp, volume, density, pressure_trace))
+
 
   # Print the current configuration to XDATCAR and CONTCAR
   # The CONTCAR file is overwritten in each MD step
@@ -145,7 +151,7 @@ stationary, zero_rotation, dt, smass, tchain, pdamp, pchain, npt_method):
 
   return dyn
 
-def run_md(atoms_object, dynamics_object, num_steps, num_freq):
+def run_md(atoms_object, dynamics_object, num_steps, ensemble, num_freq):
   "Run the MD simulation"
 
   with open(logfile_name, "w") as logfile, open(traj_filename, "w") as traj_file:
@@ -155,12 +161,12 @@ def run_md(atoms_object, dynamics_object, num_steps, num_freq):
 
 
     # Print the initial configuration at t = 0.0 fs
-    print_md_step(logfile, traj_file, 0, atoms_object, num_freq)
+    print_md_step(logfile, traj_file, 0, atoms_object, ensemble, num_freq)
 
     for i in range(1, int(num_steps/num_freq) + 1):
       # Move the dynamics one step further
       dynamics_object.run(num_freq)
-      print_md_step(logfile, traj_file, i, atoms_object, num_freq)
+      print_md_step(logfile, traj_file, i, atoms_object, ensemble, num_freq)
 
     # Caluclate the average temperature after the performed MD run
     calc_aver(num_steps, num_freq, logfile)

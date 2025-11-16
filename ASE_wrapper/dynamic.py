@@ -41,7 +41,7 @@ if __name__ == "__main__":
 
     # Read in the input file
     pes_method, mace_mlip_type, mace_mlip_file, uma_model, uma_task, \
-    gptff_file, ensemble, thermostat, T_init, pressure, pfactor, \
+    gptff_file, ocp_model, ocp_cache, ensemble, thermostat, T_init, pressure, pfactor, \
     num_steps, dt, num_freq, smass, tchain, seed, dispersion, stationary, \
     zero_rotation, device, pdamp, pchain, \
     npt_method = read_input_file(input_file)
@@ -62,6 +62,10 @@ if __name__ == "__main__":
       print("Currently only the orb_v3_conservative_inf_omat model is available")
     elif pes_method == "gptff":
       print("Used GPTFF model:",gptff_file)
+    elif pes_method == "ocpcalc":
+      print("The OCPCalculator is used for a MLIP")
+      print("Used model file:", ocp_model)
+      print("Local cache: ",ocp_cache)
     else:
       print("No suitable model given. Aborting with exit code -5 ...")
     # if uma_task not "oc20" or uma_task not "omat" or uma_task not "omol" or uma_task not "odac" or uma_task not "omc":
@@ -80,7 +84,7 @@ if __name__ == "__main__":
     # Read in the initial geometry and set the calculator
     atoms_object = read_atoms("POSCAR")
     set_pes(atoms_object, pes_method, mace_mlip_type, mace_mlip_file, \
-    uma_model, uma_task, gptff_file, dispersion, device)
+    uma_model, uma_task, gptff_file, ocp_model, ocp_cache, dispersion, device)
 
     # Initialize the MD simulation and create a dynamics object for it
     # but only if ensemble as Master Keyword is set
@@ -146,7 +150,7 @@ if __name__ == "__main__":
       # Run the MD simulation
       print("")
       print("Entering MD loop ...")
-      run_md(atoms_object, dynamics_object, num_steps, num_freq)
+      run_md(atoms_object, dynamics_object, num_steps, ensemble, num_freq)
     else:
       print("")
       print("No suitable calculation type has been given.")

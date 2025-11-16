@@ -1,7 +1,7 @@
 import numpy as np
 
 def set_pes(atoms, pes_method, mace_mlip_type, mace_mlip_file, uma_model, \
-uma_task, gptff_file, dispersion, device):
+uma_task, gptff_file, ocp_model, ocp_cache, dispersion, device):
   """Set the Calculator used for all calculations"""
 
   # Define a MACE model with possible D3 dispersion correction
@@ -111,6 +111,20 @@ uma_task, gptff_file, dispersion, device):
 #      atoms.calc = combined_calc
 #    else:
 #      atoms.calc = calc
+
+  if pes_method == "ocpcalc":
+    from fairchem.core import OCPCalculator
+    if device == "cpu":
+      cpu=True
+    elif device == "gpu":
+      cpu=False
+
+    calc = OCPCalculator(
+      model_name=ocp_model,
+      local_cache=ocp_cache,
+      cpu=cpu
+    )
+    atoms.calc = calc
 
 def calc_averages():
   """Calculate average quantaties from md.log file written by a MD simulation"""
