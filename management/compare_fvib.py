@@ -37,51 +37,53 @@ def process_command_line_arguments():
 def get_fvib(filename1, filename2):
   """Get the average Fvib values for each run from both files"""
 
+  # Lists of all fvib values
   fvib_1 = []
   fvib_2 = []
+  # Lists of all atomic numbers
+  num_atoms_1 = []
+  num_atoms_2 = []
 
   # Read in Fvib from the two files
   with open(filename1, 'r') as file1, open(filename2, 'r') as file2:
     print(f"Reading average Fvib values from {filename1} ...")
     for line in file1:
-      line = line.rstrip().split()
-      if not line or line[0] == '#' or len(line) != 1:
-        continue
-      else:
-        value = float(line[0])
-
-      # Check if the Fvib entry is empty
-      if value == int(value):
-        value = "undefined"
-        fvib_1.append(value)
-        # Skip the next two lines
-        file1.readline()
-        file1.readline()
-      else:
-        fvib_1.append(value)
+      line = line.strip()
+      # Extract all mean values
+      if line.startswith("# -------"):
+        next_line = file1.readline().strip()
+        if next_line:
+          fvib_1.append(float(next_line))
+        else:
+          fvib_1.append("undefined")
+      elif line.startswith("# Elements:"):
+        next_line = file1.readline().strip().split()
+        if len(next_line) == 2:
+          num_atoms_1.append(int(next_line[0])+6)
+        else:
+          num_atoms_1.append("undefined")
 
     print(f"Reading average Fvib values from {filename2} ...")
     for line in file2:
-      line = line.rstrip().split()
-      if not line or line[0] == '#' or len(line) != 1:
-        continue
-      else:
-        value = float(line[0])
+      line = line.strip()
+      # Extract all mean values
+      if line.strip().startswith("# -------"):
+        next_line = file2.readline().strip()
+        if next_line:
+          fvib_2.append(float(next_line))
+        else:
+          fvib_2.append("undefined")
+      elif line.startswith("# Elements:"):
+        next_line = file2.readline().strip().split()
+        if len(next_line) == 2:
+          num_atoms_2.append(int(next_line[0])+6)
+        else:
+          num_atoms_2.append("undefined")
 
-      # Check if the Fvib entry is empty
-      if value == int(value):
-        value = "undefined"
-        fvib_2.append(value)
-        # Skip the next two lines
-        file2.readline()
-        file2.readline()
-      else:
-        fvib_2.append(value)
+  return fvib_1, fvib_2, num_atoms_1, num_atoms_2
 
-  return fvib_1, fvib_2
-
-def get_diff(values1, values2):
-  """Calculate the Fvib difference with respect to values1"""
+def get_diff(values1, values2, num_atoms_1, num_atoms_2):
+  """Calculate the Fvib difference per atom with respect to values1"""
 
   diff = []
 
@@ -89,7 +91,7 @@ def get_diff(values1, values2):
     if values1[i] == "undefined" or values2[i] == "undefined":
       continue
     else:
-      values_diff = abs(values2[i] - values1[i])
+      values_diff = abs(values2[i]/num_atoms_2[i] - values1[i]/num_atoms_1[i])*1000  # in meV
       diff.append(values_diff)
 
   return diff
@@ -98,8 +100,8 @@ def plot_histogram(diff, mlip_name):
   """Plot the errors as a histogram plot"""
 
   fig, ax = plt.subplots(figsize=(10,7))
-  ax.set_xlim(0.0, 2.5)
-  ax.set_xlabel(r"error in $F_{vib}$ $(eV)$", fontsize=12)
+  ax.set_xlim(0.0, 40.0)
+  ax.set_xlabel(r"error in $F_{vib}$ per atom $(meV)$", fontsize=12)
   ax.set_ylabel("relative frequency", fontsize=12)
 
   counts, bins = np.histogram(diff, bins=100)
@@ -136,8 +138,8 @@ def plot_scatter(fvib_1, fvib_2, diff, filename1, filename2):
     fvib_1.pop(undefined_indeces[i]-i)
 
   fig, ax = plt.subplots(figsize=(10,7))
-  ax.set_xlabel(r"$F_{vib}$ VASP PBE D3-BJ $(eV)$", fontsize=12)
-  ax.set_ylabel(r"$F_{vib}$ MLIP model $(eV)$", fontsize=12)
+  ax.set_xlabel(r"$F_{vib}$ VASP PBE D3-BJ $(meV)$", fontsize=12)
+  ax.set_ylabel(r"$F_{vib}$ MLIP model $(meV)$", fontsize=12)
 
   # Transform fvib_1 and fvib_2 to numpy arrays
   fvib_1 = np.array(fvib_1)
@@ -183,6 +185,7 @@ if __name__ == "__main__":
   print("                        written by benchmarking.sh -make_vDOS")
   print("")
   print("Usage: compare_fvib.py [fvib_results_1.dat] [fvib_results_2.dat] [model name]")
+  print("The Fvib differences are calculated with respect to fvib_results_1.dat")
   print("")
 
   # Get the two files to compare
@@ -201,7 +204,7 @@ if __name__ == "__main__":
   print("")
 
   # Get the average Fvib values
-  fvib_1, fvib_2 = get_fvib(filename1, filename2)
+  fvib_1, fvib_2, num_atoms_1, num_atoms_2 = get_fvib(filename1, filename2)
 
   print("")
   print(f"{filename1} has {len(fvib_1)} entries")
@@ -209,7 +212,7 @@ if __name__ == "__main__":
   print("")
 
   # Calculate the Fvib difference for all runs
-  fvib_diff = get_diff(fvib_1, fvib_2)
+  fvib_diff = get_diff(fvib_1, fvib_2, num_atoms_1, num_atoms_2)
 
   # Plot the error per atom as histogram plot
   print("Generating the histogram plot ...")
