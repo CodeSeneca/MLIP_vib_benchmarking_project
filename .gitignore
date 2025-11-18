@@ -2,6 +2,7 @@
 *.model
 *.nfs*
 *.swp
+*.o
 POSCAR
 OUTCAR
 md.log
