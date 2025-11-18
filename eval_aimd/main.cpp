@@ -33,6 +33,9 @@ int main(int argc, char** argv) {
   if (exit_code != 0) {
     return exit_code;
   }
+
+  // Write the md.log file
+  io.write_md_log();
   // Write the MACE trainset file
   io.write_mace();
 

@@ -20,6 +20,7 @@
 #include "./data.h"
 
 const char* IO::mace_file = "trainset_mace.xyz";
+const char* IO::md_log_file = "md.log";
 
 // _____________________________________________________________________________
 IO::IO(int argc, char** argv) {
@@ -165,6 +166,8 @@ int IO::read_outcar() {
   Atom atom;
   // Electronic energy of one MD step
   double energy_el;
+  // Potential, kinetic and total energy of one MD step
+  double epot, ekin, etot;
   // Vector of atoms representing the molecule of one MD step
   std::vector<Atom> molecule;
 
@@ -245,13 +248,73 @@ int IO::read_outcar() {
       >> energy_el;
 
       _energies_el.push_back(energy_el);
-    }
+    } else if (line.find("ENERGY OF THE ELECTRON-ION-THERMOSTAT SYSTEM (eV)")
+      != std::string::npos) {
+      // Skip the next line
+      getline(outcar_file, line);
+      // Read in the energy ion-electron TOTEN = Epot
+      getline(outcar_file, line);
+      line_stream.clear();
+      line_stream.str(line);
+      line_stream >> dummy >> dummy >> dummy >> dummy >> epot >> dummy >> dummy;
+      // std::cout << epot << std::endl;
+      _epot.push_back(epot);
+      // Read in Ekin
+      getline(outcar_file, line);
+      line_stream.clear();
+      line_stream.str(line);
+      line_stream >> dummy >> dummy >> dummy >> dummy >> ekin;
+      _ekin.push_back(ekin);
+      // Caluclate Etot = Ekin + Epot
+      etot = ekin + epot;
+      _etot.push_back(etot);
+      }
   }
 
   // Close the OUTCAR file
   outcar_file.close();
 
   return 0;
+}
+
+// _____________________________________________________________________________
+void IO::write_md_log() {
+  // The current MD step that is written to md.log
+  size_t step = 1;
+
+  std::cout << "Writing the md.log file ..." << std::endl;
+  if (_read_freq == 1) {
+    std::cout << "Writing out every step" << std::endl;
+  } else if (_read_freq == 2) {
+    std::cout << "Writing out every " << _read_freq << "nd step" << std::endl;
+  } else if (_read_freq == 2) {
+    std::cout << "Writing out every " << _read_freq << "rd step" << std::endl;
+  } else {
+    std::cout << "Writing out every " << _read_freq << "nd step" << std::endl;
+  }
+
+  // Open file md.log for writing
+  std::ofstream md_log(md_log_file);
+
+  // Write the header of the md.log file
+  md_log << "# MD step     free energy TOTEN (eV)     kinetic energy (eV)";
+  md_log << "     Epot+Ekin (eV)    volume of cell (A^3)"
+  << std::endl << std::endl;
+
+  for (size_t i = 0; i < _cells.size(); i++) {
+    if (step%_read_freq == 0) {
+      md_log << "    " << step << "            " << std::fixed <<
+      std::setprecision(5) <<
+      _epot[i] << "                  " << _ekin[i] << "           "
+      << _etot[i] << "              " <<
+      std::fixed << std::setprecision(2) << _cells[i].volume << "     "
+      << std::endl;
+    }
+    step++;
+  }
+
+  // Close the md.log file
+  md_log.close();
 }
 
 // _____________________________________________________________________________
@@ -270,7 +333,7 @@ void IO::write_mace() {
     std::cout << "-------------------------------------" << std::endl;
     std::cout << "Writing the MACE trainset file ..." << std::endl;
 
-    // Open the MACE trainset file for reading
+    // Open the MACE trainset file for writing
     std::ofstream trainset_mace(mace_file);
 
     for (size_t i = 0; i < _energies_el.size(); i++) {

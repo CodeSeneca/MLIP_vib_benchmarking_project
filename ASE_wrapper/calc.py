@@ -116,7 +116,7 @@ uma_task, gptff_file, ocp_model, ocp_cache, dispersion, device):
     from fairchem.core import OCPCalculator
     if device == "cpu":
       cpu=True
-    elif device == "gpu":
+    elif device == "cuda":
       cpu=False
 
     calc = OCPCalculator(

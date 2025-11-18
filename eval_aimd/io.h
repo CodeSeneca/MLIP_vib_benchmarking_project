@@ -24,6 +24,8 @@ class IO {
   std::string _outcar_path;
   // Name of the MACE trainset file
   static const char* mace_file;
+  // Name of the md.log file
+  static const char* md_log_file;
   // Frequency in which MD steps should be read
   size_t _read_freq;
   // Determine if the MACE trainset file should be written
@@ -38,6 +40,10 @@ class IO {
 
   // Vector of all electronic energies
   std::vector<double> _energies_el;
+  // Vector of all epot, ekin, etot
+  std::vector<double> _epot;
+  std::vector<double> _ekin;
+  std::vector<double> _etot;
   // Vector of all unit cells
   std::vector<Cell> _cells;
   // Vector of all molecules
@@ -58,6 +64,9 @@ class IO {
 
   // Read in the OUTCAR file
   int read_outcar();
+
+  // Write important quantities of the MD run to md.log
+  void write_md_log();
 
   // Write a MACE trainset file
   void write_mace();
