@@ -350,29 +350,41 @@ void IO::write_mace() {
         << " Nmols=1 REF_energy=    " << _energies_el[i]<< " pbc=\"T T T"<< "\""
         << std::endl;
 
+        // The current element that is written out
+        size_t current_element = 0;
+        // How many lines of the current element were already written
+        size_t written_for_element = 0;
         // First element symbol
-        for (size_t l = 0; l < _element_numbers[0]; l++) {
-          trainset_mace << _element_symbols[0] << "    " <<
+        for (size_t l = 0; l < _molecules[i].size(); l++) {
+          // Check if the current element was completely written
+          if (written_for_element >= _element_numbers[current_element]) {
+            current_element++;
+            written_for_element = 0;
+          }
+
+          trainset_mace << _element_symbols[current_element] << "    " <<
           std::fixed << std::setprecision(8) <<
           _molecules[i][l].pos[0] << "   " << _molecules[i][l].pos[1] << "   "<<
           _molecules[i][l].pos[2] << "   " << "0        " <<
           _molecules[i][l].grad[0] << "   " << _molecules[i][l].grad[1] << "   "
           << _molecules[i][l].grad[2] << std::endl;
+
+          written_for_element++;
         }
 
         // The rest of the element symbols
-        for (size_t k = 1; k < _element_symbols.size(); k++) {
-          for (size_t j = _element_numbers[k-1]; j <
-               _element_numbers[k-1]+_element_numbers[k]; j++) {
-            trainset_mace << _element_symbols[k] << "    " <<
-            std::fixed << std::setprecision(8) <<
-            _molecules[i][j].pos[0] << "   " << _molecules[i][j].pos[1]
-            << "   " <<
-            _molecules[i][j].pos[2] << "   " << "0        " <<
-            _molecules[i][j].grad[0]<< "   "<< _molecules[i][j].grad[1]<< "   "
-            << _molecules[i][j].grad[2] << std::endl;
-          }
-        }
+        // for (size_t k = 1; k < _element_symbols.size(); k++) {
+        //   for (size_t j = _element_numbers[k-1]; j <
+        //        _element_numbers[k-1]+_element_numbers[k]; j++) {
+        //     trainset_mace << _element_symbols[k] << "    " <<
+        //     std::fixed << std::setprecision(8) <<
+        //     _molecules[i][j].pos[0] << "   " << _molecules[i][j].pos[1]
+        //     << "   " <<
+        //     _molecules[i][j].pos[2] << "   " << "0        " <<
+        //     _molecules[i][j].grad[0]<< "   "<< _molecules[i][j].grad[1]<<" "
+        //     << _molecules[i][j].grad[2] << std::endl;
+        //   }
+        // }
       }
       step++;
     }

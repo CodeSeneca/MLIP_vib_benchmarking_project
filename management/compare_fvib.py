@@ -83,7 +83,8 @@ def get_fvib(filename1, filename2):
   return fvib_1, fvib_2, num_atoms_1, num_atoms_2
 
 def get_diff(values1, values2, num_atoms_1, num_atoms_2):
-  """Calculate the Fvib difference per atom with respect to values1"""
+  """Calculate the Fvib difference per atom with respect to values1
+     in meV"""
 
   diff = []
 
@@ -109,7 +110,7 @@ def plot_histogram(diff, mlip_name):
   ax.bar(bins[:-1], frequencies, width=np.diff(bins), align="edge", color="darkred", label=mlip_name)
   ax.legend(fontsize=12)
 
-  plt.savefig(fname="error_histogram.png", format="png")
+  plt.savefig(fname="error_histogram.svg", format="svg")
   plt.show()
 
 def plot_scatter(fvib_1, fvib_2, diff, filename1, filename2):
@@ -138,8 +139,8 @@ def plot_scatter(fvib_1, fvib_2, diff, filename1, filename2):
     fvib_1.pop(undefined_indeces[i]-i)
 
   fig, ax = plt.subplots(figsize=(10,7))
-  ax.set_xlabel(r"$F_{vib}$ VASP PBE D3-BJ $(meV)$", fontsize=12)
-  ax.set_ylabel(r"$F_{vib}$ MLIP model $(meV)$", fontsize=12)
+  ax.set_xlabel(r"$F_{vib}$ VASP PBE D3-BJ $(eV)$", fontsize=12)
+  ax.set_ylabel(r"$F_{vib}$ MLIP model $(eV)$", fontsize=12)
 
   # Transform fvib_1 and fvib_2 to numpy arrays
   fvib_1 = np.array(fvib_1)
@@ -172,7 +173,7 @@ def plot_scatter(fvib_1, fvib_2, diff, filename1, filename2):
   )
 
   ax.legend(fontsize=12)
-  plt.savefig(fname="fvib_scatter.png", format="png")
+  plt.savefig(fname="fvib_scatter.svg", format="svg")
   plt.show()
 
 ################################################################################
@@ -211,7 +212,7 @@ if __name__ == "__main__":
   print(f"{filename2} has {len(fvib_2)} entries")
   print("")
 
-  # Calculate the Fvib difference for all runs
+  # Calculate the Fvib difference per atom for all runs
   fvib_diff = get_diff(fvib_1, fvib_2, num_atoms_1, num_atoms_2)
 
   # Plot the error per atom as histogram plot

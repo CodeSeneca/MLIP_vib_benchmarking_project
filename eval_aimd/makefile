@@ -15,7 +15,7 @@ CPPO = $(patsubst %.cpp, %.o, $(CPPFILES))
 all: compile checkstyle run
 
 run:
-	./$(TARGET)
+	./$(TARGET) --write_mace
 
 checkstyle:
 	cpplint --repository=. *.h *.cpp
