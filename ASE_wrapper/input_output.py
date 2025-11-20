@@ -47,7 +47,8 @@ def read_input_file(input_filename):
   #   and gptff_v2.pth available)
   gptff_file = None
   # For the OCPCalculator: enables a couple of MLIPs, mostly older ones
-  
+  ocp_model = None
+  ocp_cache = "."
 
   device="cpu"
 

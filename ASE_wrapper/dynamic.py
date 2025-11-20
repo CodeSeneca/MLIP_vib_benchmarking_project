@@ -3,6 +3,7 @@
 ###############################################################################
 #####
 ##### Author: Maximilian Bechtel <maxi.bechtel@fau.de>
+#####         Julien Steffen     <julien.steffen@fau.de>
 #####
 ###############################################################################
 
@@ -65,7 +66,7 @@ if __name__ == "__main__":
     elif pes_method == "ocpcalc":
       print("The OCPCalculator is used for a MLIP")
       print("Used model file:", ocp_model)
-      print("Local cache: ",ocp_cache)
+      print("Local cache: ", ocp_cache)
     else:
       print("No suitable model given. Aborting with exit code -5 ...")
     # if uma_task not "oc20" or uma_task not "omat" or uma_task not "omol" or uma_task not "odac" or uma_task not "omc":
