@@ -156,9 +156,11 @@ def run_md(atoms_object, dynamics_object, num_steps, ensemble, num_freq):
 
   with open(logfile_name, "w") as logfile, open(traj_filename, "w") as traj_file:
 
-    logfile.write("# Step     pot.energy (eV)    kin.energy (eV)   tot.energy (eV)   temperature (K)  volume(A^3)  density(g/cm^3)  pressure (GaPa)\n")
-    logfile.write("\n")
+    logfile.write("# Step     pot.energy (eV)    kin.energy (eV)   tot.energy (eV)   temperature (K)  volume(A^3)  density(g/cm^3)\n")
 
+    if ensemble == "npt":
+      logfile.write("# Step     pot.energy (eV)    kin.energy (eV)   tot.energy (eV)   temperature (K)  volume(A^3)  density(g/cm^3)  pressure (GaPa)\n")
+    logfile.write("\n")
 
     # Print the initial configuration at t = 0.0 fs
     print_md_step(logfile, traj_file, 0, atoms_object, ensemble, num_freq)
@@ -169,9 +171,9 @@ def run_md(atoms_object, dynamics_object, num_steps, ensemble, num_freq):
       print_md_step(logfile, traj_file, i, atoms_object, ensemble, num_freq)
 
     # Caluclate the average temperature after the performed MD run
-    calc_aver(num_steps, num_freq, logfile)
+    calc_aver(num_steps, num_freq, logfile, ensemble)
 
-def calc_aver(num_steps, num_freq, logfile):
+def calc_aver(num_steps, num_freq, logfile, ensemble):
   """Calculate the average temperature and pressure from a pervious MD run"""
 
   # Use temp_aver, pressure_aver as global varibles here
@@ -182,13 +184,19 @@ def calc_aver(num_steps, num_freq, logfile):
   global etot_aver
 
   temp_aver = temp_aver / (num_steps/num_freq + 1)
-  pressure_aver = pressure_aver / (num_steps/num_freq + 1)
   volume_aver = volume_aver / (num_steps/num_freq + 1)
   density_aver = density_aver / (num_steps/num_freq + 1)
   etot_aver = etot_aver / (num_steps/num_freq + 1)
+
+  if ensemble == "npt":
+    pressure_aver = pressure_aver / (num_steps/num_freq + 1)
+
   logfile.write("\n")
   logfile.write(f"# The average temperature of the MD run is:                                {temp_aver:.5f} K\n")
-  logfile.write(f"# The average external pressure of the MD run is:                          {pressure_aver*10000:.5f} bar\n")
+
+  if ensemble == "npt":
+    logfile.write(f"# The average external pressure of the MD run is:                          {pressure_aver*10000:.5f} bar\n")
+
   logfile.write(f"# The average volume of the MD run is:                                     {volume_aver:.5f} A^3\n")
   logfile.write(f"# The average density of the MD run is:                                    {density_aver:.5f} g/cm^3\n")
   logfile.write(f"# The average total energy of the MD run is (i.e. the internal energy U):  {etot_aver:.5f} eV\n")

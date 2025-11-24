@@ -124,12 +124,27 @@ uma_task, gptff_file, ocp_model, ocp_cache, dispersion, device):
       local_cache=ocp_cache,
       cpu=cpu
     )
-    atoms.calc = calc
+
+    # All OCP MLIPs learned on the OC20 dataset do not inlcude Dispersion corrections
+
+    if dispersion:
+      from ase.calculators.mixing import SumCalculator
+      from torch_dftd.torch_dftd3_calculator import TorchDFTD3Calculator as DFTD3
+
+      dft_d3_calc = DFTD3(atoms=atoms, device=device, damping="bj")
+      print("")
+      print("Pytorch implementation of DFTD3 initialized.")
+      combined_calc = SumCalculator([calc, dft_d3_calc])
+      atoms.calc = combined_calc
+    else:
+      atoms.calc = calc
 
 def calc_averages():
   """Calculate average quantaties from md.log file written by a MD simulation"""
 
   data = np.genfromtxt("md.log")
+  # Check whether the pressure was determined during the MD run
+  pressure_calc = True
 
   # Etot
   etot = data[:,3]
@@ -148,17 +163,23 @@ def calc_averages():
   density_mean = np.mean(density)
   density_std = np.std(density)
   # Pressure
-  pressure = data[:,7]
-  pressure_mean = np.mean(pressure)
-  pressure_std = np.std(pressure)
+  try:
+    pressure = data[:,7]
+    pressure_mean = np.mean(pressure)
+    pressure_std = np.std(pressure)
+  except:
+    pressure_calc = False
+    print("No pressure was determined during the MD run.")
 
   print("")
   print(f"Performing statistics over {len(etot)} MD time steps")
   print("======================================================================================================")
   print(f"The average temperature of the MD run is:                                {temperature_mean:.5f} K")
-  print(f"The average pressure of the MD run is:                                   {pressure_mean*10000:.5f} bar")
+
+  if pressure_calc:
+    print(f"The average pressure of the MD run is:                                   {pressure_mean*10000:.5f} bar")
+
   print(f"The average volume of the MD run is:                                     {volume_mean:.5f} A^3")
   print(f"The average density of the MD run is:                                    {density_mean:.5f} g/cm^3")
   print(f"The average total energy of the MD run is (i.e. the internal energy U):  {etot_mean:.5f} eV")
-  print("")
 
