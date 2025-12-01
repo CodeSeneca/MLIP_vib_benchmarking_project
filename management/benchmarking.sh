@@ -50,6 +50,7 @@ parse_command_line_args() {
     echo "-copy_input [number of run folders] [number of traj folders per run folder] [path where to copy POSCAR files from]"
     echo "-make_vDOS [start] [end] [temperature]"
     echo "-submit_jobs [start] [end]"
+    echo "-render_molecules [start] [end]"
     echo ""
     exit -1
   fi
@@ -66,6 +67,10 @@ parse_command_line_args() {
     temp=$4
   elif [ "$1" == "-submit_jobs" ]; then
     mode="submit_jobs"
+    start_run=$2
+    end_run=$3
+  elif [ "$1" == "-render_molecules" ]; then
+    mode="render_molecules"
     start_run=$2
     end_run=$3
   fi
@@ -269,6 +274,53 @@ submit_jobs() {
   done
 }
 
+# Go into each run$i folder and render pictures of the POSCAR present there
+render_molecules() {
+  echo "Pictures for the following run folders will be rendered:"
+  echo "Start run folder: $start_run"
+  echo "End run folder: $end_run"
+  echo ""
+
+  if [ -d "rendered_pictures" ]; then
+      echo "The rendered_pictures folder already exists. New rendered pictures will be appended but some pictures might be overwritten!"
+  else
+      mkdir rendered_pictures
+  fi
+
+
+  # Go into each run$i folder
+  for i in $(seq $start_run $end_run)
+  do
+    cd run$i
+    echo "Rendering pictures for run$i ..."
+
+    cd traj1
+      # Convert the POSCAR in .xyz format -> gives the file output.xyz
+      python3 $script_dir/poscar2xyz.py >> poscar2xyz.tmp
+      rm poscar2xyz.tmp
+
+      # Rotate the molecule in output.xyz to standard rotation
+      python3 $script_dir/rotate_mol.py output.xyz >> rotate_mol.tmp
+      rm rotate_mol.tmp
+
+      # The actual rendering with VMD
+      $script_dir/render_mol.sh struc_rotated.xyz >> render_mol.tmp
+      rm render_mol.tmp
+      rm tmp.vmd
+      cp struc_rotated_top.png ../../rendered_pictures/molecule$i.png
+      mv output.xyz molecule$i.xyz
+    cd ..
+
+    cd ..
+  done
+
+  if [ -z $start_run ] || [ -z $end_run ]; then
+    echo "No suitable values were given. Aborting ..."
+    echo ""
+    exit -4
+  fi
+}
+
 #######################################################################
 ##### MAIN PROGRAM
 #######################################################################
@@ -284,6 +336,8 @@ elif  [ "$mode" == "make_vDOS" ]; then
   make_vDOS
 elif  [ "$mode" == "submit_jobs" ]; then
   submit_jobs
+elif  [ "$mode" == "render_molecules" ]; then
+  render_molecules
 else
   echo "No suitable mode was given. Aborting benchmarking.sh ..."
   echo ""
