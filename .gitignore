@@ -7,3 +7,4 @@ POSCAR
 OUTCAR
 md.log
 trainset*
+*.pt
