@@ -21,6 +21,8 @@ path="not set"
 start_run="not set"
 # End run folder to be submitted
 end_run="not set"
+# Format of the trajectory file: XDATCAR or trajectory.xyz
+format="not set"
 
 # Temperature in Kelvin
 temp="not set"
@@ -48,9 +50,10 @@ parse_command_line_args() {
     echo ""
     echo "***** The options are: *****"
     echo "-copy_input [number of run folders] [number of traj folders per run folder] [path where to copy POSCAR files from]"
-    echo "-make_vDOS [start] [end] [temperature]"
+    echo "-make_vDOS [start] [end] [temperature] [fileformat]"
     echo "-submit_jobs [start] [end]"
     echo "-render_molecules [start] [end]"
+    echo "-stability [start] [end]"
     echo ""
     exit -1
   fi
@@ -65,12 +68,17 @@ parse_command_line_args() {
     start_run=$2
     end_run=$3
     temp=$4
+    format=$5
   elif [ "$1" == "-submit_jobs" ]; then
     mode="submit_jobs"
     start_run=$2
     end_run=$3
   elif [ "$1" == "-render_molecules" ]; then
     mode="render_molecules"
+    start_run=$2
+    end_run=$3
+  elif [ "$1" == "-stability" ]; then
+    mode="stability"
     start_run=$2
     end_run=$3
   fi
@@ -143,13 +151,14 @@ get_number_of_atoms() {
 # Go into each run$i folder to create a vDOS spectrum and calculate
 # the vibrational free energy F_vib from it
 make_vDOS() {
-  if [ -z $start_run ] || [ -z $end_run ] || [ -z $temp ]; then
+  if [ -z $start_run ] || [ -z $end_run ] || [ -z $temp ] || [ -z $format ]; then
     echo "No suitable values were given. Aborting ..."
     echo ""
     exit -4
   fi
 
   echo "A vDOS calculation for the following run folders will be done:"
+  echo "Trajectory format: $format"
   echo "Start run folder: $start_run"
   echo "End run folder: $end_run"
   echo "Temperature: $temp K"
@@ -169,6 +178,11 @@ make_vDOS() {
     echo "# Molecule type $i" >> $out_file
   
     cd run$i
+
+    if [[ "$format" == "trajectory.xyz" ]]; then
+      xyz2poscar.py traj1/start.xyz traj1/POSCAR
+    fi
+
     elements=$(head -n 6 traj1/POSCAR | tail -n 1)
     echo "# Elements: $elements" >> "../fvib_results.dat"
   
@@ -186,25 +200,40 @@ make_vDOS() {
           rm "power_spectrum_global.csv"
         fi
   
-        # Create a new XDATCAR file in the NpT format
-        modify_xdatcar -print_npt > modify_xdatcar.log
-        rm modify_xdatcar.log
-        # Rename old XDATCAR to XDATCAR_NVT
-        mv XDATCAR XDATCAR_NVT
-        # Rename XDATCAR (in NpT format) to XDATCAR for subsequent analysis
-        # with TRAVIS
-        mv XDATCAR_mod XDATCAR
+        if [[ "$format" == "XDATCAR" ]]; then
+          # Create a new XDATCAR file in the NpT format
+          modify_xdatcar -print_npt > modify_xdatcar.log
+          rm modify_xdatcar.log
+          # Rename old XDATCAR to XDATCAR_NVT
+          mv XDATCAR XDATCAR_NVT
+          # Rename XDATCAR (in NpT format) to XDATCAR for subsequent analysis
+          # with TRAVIS
+          mv XDATCAR_mod XDATCAR
+        fi
+
         ###########################
         # HERE ANALYSIS WITH TRAVIS
         ##########################
-        travis -p XDATCAR -i ../../travis_vDOS_input.txt > power_spectrum.log
+        if [[ "$format" == "XDATCAR" ]]; then
+          travis -p XDATCAR -i ../../travis_vDOS_input.txt > power_spectrum.log
+        elif [[ "$format" == "trajectory.xyz" ]]
+        then
+          travis -p trajectory.xyz -i ../../travis_vDOS_input.txt > power_spectrum.log
+        fi
+
         rm power_spectrum.log
-        # Undo the renaming
-        mv XDATCAR XDATCAR_mod
-        mv XDATCAR_NVT XDATCAR
-        rm xdat_length
+
+        if [[ "$format" == "XDATCAR" ]]; then
+          # Undo the renaming
+          mv XDATCAR XDATCAR_mod
+          mv XDATCAR_NVT XDATCAR
+          rm xdat_length
+        fi
   
         # Determine the number of atoms in the POSCAR file
+        if [[ "$format" == "trajectory.xyz" ]]; then
+          xyz2poscar.py start.xyz POSCAR
+        fi
         num_atoms=$(get_number_of_atoms "POSCAR")
         # Determine the number of vibrational degrees of freedom fvib = 3N - 6
         num_fvib=$(echo "3*$num_atoms-6" | bc -l)
@@ -321,6 +350,70 @@ render_molecules() {
   fi
 }
 
+determine_stability() {
+  if [ -z $start_run ] || [ -z $end_run ]; then
+    echo "No suitable values were given. Aborting ..."
+    echo ""
+    exit -4
+  fi
+
+  echo "The stability of all MD runs will be evaluated:"
+  echo "Start run folder: $start_run"
+  echo "End run folder: $end_run"
+  echo ""
+
+  # Flag if MD trajectory is stable or not
+  # 0 = stable, 1 = unstable
+  local stable=0
+  # Name of the stability output file
+  local outfile="stability.dat"
+
+  # Remove file stability.dat if it exists
+  if [ -f "$outfile" ]; then
+    echo "The file $outfile already exists. It will be overwritten ..."
+    rm $outfile
+  fi
+
+  echo "# A boolean mask is applied with" >> stability.dat
+  echo "# 0 = stable" >> stability.dat
+  echo "# 1 = unstable" >> stability.dat
+  echo "" >> stability.dat
+
+  for i in $(seq $start_run $end_run)
+  do
+    cd run$i
+    echo "Evaluating stability in run$i ..."
+    echo "# Molecule type $i:" >> ../stability.dat
+
+    # Determine the number of traj$i folder
+    traj_number=$(find . -maxdepth 1 -type d -name "traj*" | wc -l)
+    for j in $(seq 1 $traj_number)
+    do
+      cd traj$j
+
+      # Determine the stability of all bonds in the MD trajectory
+      analyze_md -stability > stability.log
+      sleep 1
+      rm xdat_length
+
+      # Check if the folder stability is empty
+      # yes: no bonds have broken
+      if [ -z "$(ls -A "analysis")" ]; then
+        echo "MD trajectory is stable."
+        stable=0
+      else
+        echo "MD trajectory is not stable."
+       stable=1
+      fi
+      echo "$stable" >> ../../stability.dat
+
+      cd ..
+    done
+
+    cd ..
+  done
+}
+
 #######################################################################
 ##### MAIN PROGRAM
 #######################################################################
@@ -338,6 +431,8 @@ elif  [ "$mode" == "submit_jobs" ]; then
   submit_jobs
 elif  [ "$mode" == "render_molecules" ]; then
   render_molecules
+elif  [ "$mode" == "stability" ]; then
+  determine_stability
 else
   echo "No suitable mode was given. Aborting benchmarking.sh ..."
   echo ""

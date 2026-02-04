@@ -1,7 +1,8 @@
+import sys
 import numpy as np
 
 def set_pes(atoms, pes_method, mace_mlip_type, mace_mlip_file, uma_model, \
-uma_task, gptff_file, ocp_model, ocp_cache, dispersion, device):
+uma_task, gptff_file, ocp_model, ocp_cache, dispersion, device, mattersim_model):
   """Set the Calculator used for all calculations"""
 
   # Define a MACE model with possible D3 dispersion correction
@@ -138,6 +139,23 @@ uma_task, gptff_file, ocp_model, ocp_cache, dispersion, device):
       atoms.calc = combined_calc
     else:
       atoms.calc = calc
+
+  if pes_method == "mattersim":
+    from mattersim.forcefield import MatterSimCalculator
+
+    print("MatterSim Model: mattersim_model")
+
+    if mattersim_model == "small":
+      atoms.calc = MatterSimCalculator(load_path="MatterSim-v1.0.0-1M.pth", device=device)
+    elif mattersim_model == "large":
+      atoms.calc = MatterSimCalculator(load_path="MatterSim-v1.0.0-5M.pth", device=device)
+    else:
+      print("No suitable MatterSim model given. The large one will be used as default.")
+      atoms.calc = MatterSimCalculator(load_path="MatterSim-v1.0.0-5M.pth", device=device)
+
+  if pes_method == "sevennet":
+    from sevenn.calculator import SevenNetCalculator
+    atoms.calc = SevenNetCalculator(model="7net-mf-ompa", modal="mpa", device=device)
 
 def calc_averages():
   """Calculate average quantaties from md.log file written by a MD simulation"""

@@ -50,6 +50,12 @@ def read_input_file(input_filename):
   ocp_model = None
   ocp_cache = "."
 
+  # For the MatterSim Calculator:
+  # small: MatterSim-v1.0.0-1M
+  # large: MatterSim-v1.0.0-5M
+  mattersim_model = "large"
+
+  # Flag whether calculation should be run on the CPU (cpu) or on the GPU (cuda)
   device="cpu"
 
   # Master Keyword to activate the MD routine
@@ -196,6 +202,24 @@ def read_input_file(input_filename):
             if next_line_split[0] == "device":
               device = next_line_split[1]
 
+        elif pes_method == "mattersim" and line_list[0] == "mattersim" and line_list[1] == "{":
+          next_line = "xxxx"
+          while next_line != "}":
+            next_line = input_file.readline().rstrip()
+            next_line_split = next_line.split()
+            if next_line_split[0] == "mattersim_model":
+              ocp_model = next_line_split[1]
+            if next_line_split[0] == "device":
+              device = next_line_split[1]
+
+        elif pes_method == "sevennet" and line_list[0] == "sevennet" and line_list[1] == "{":
+          next_line = "xxxx"
+          while next_line != "}":
+            next_line = input_file.readline().rstrip()
+            next_line_split = next_line.split()
+            if next_line_split[0] == "device":
+              device = next_line_split[1]
+
 
         elif ensemble == "npt" and line_list[0] == "npt" and line_list[1] == "{":
           next_line = "xxxx"
@@ -228,7 +252,7 @@ def read_input_file(input_filename):
   return pes_method, mace_mlip_type, mace_mlip_file, uma_model, uma_task, \
   gptff_file, ocp_model, ocp_cache, ensemble, thermostat, T_init, pressure, pfactor, num_steps, dt, num_freq, \
   smass, tchain, seed, dispersion, stationary, zero_rotation, device, pdamp, \
-  pchain, npt_method
+  pchain, npt_method, mattersim_model
 
 def read_atoms(file_type):
   """Read in the geometry from the POSCAR file and return an atoms object
