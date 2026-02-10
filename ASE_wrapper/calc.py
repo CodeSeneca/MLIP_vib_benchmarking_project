@@ -7,12 +7,25 @@ uma_task, gptff_file, ocp_model, ocp_cache, dispersion, device, mattersim_model)
 
   # Define a MACE model with possible D3 dispersion correction
   if pes_method == "mace" and mace_mlip_type == "mp":
+    from mace.calculators import mace_mp
+
+    mace_mlip = mace_mp(model=mace_mlip_file, dispersion=dispersion, \
+    default_dtype="float32", device=device)
+
+    atoms.calc = mace_mlip
+
+  if pes_method == "mace" and (mace_mlip_type == "omat_pbe" or \
+  mace_mlip_type == "omol" or mace_mlip_tpye == "spice_wB97M" or \
+  mace_mlip_type == "rgd1_b3lyp" or mace_mlipy_type == "oc20_usemppbe" or \
+  mace_mlip_type == "matpes_r2scan"):
 
     from mace.calculators import mace_mp
 
-    mace_mlip = mace_mp(model=mace_mlip_file, \
-    dispersion=dispersion, default_dtype="float32", device=device)
+    mace_mlip = mace_mp(model=mace_mlip_file, dispersion=dispersion, \
+    default_dtype="float32", device=device, head=mace_mlip_type)
+
     atoms.calc = mace_mlip
+
   elif pes_method == "mace" and mace_mlip_type == "omol":
 
     from mace.calculators import mace_omol
