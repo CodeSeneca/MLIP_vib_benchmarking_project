@@ -239,7 +239,7 @@ make_vDOS() {
         num_fvib=$(echo "3*$num_atoms-6" | bc -l)
         # Calculate the vibrational free energy F_vib
         python $script_dir/calc_avib.py -T=$temp -fvib=$num_fvib > fvib.log
-        avib_out=$(tail -n 2 fvib.log | head -n 1)
+        avib_out=$(tail -n 3 fvib.log | head -n 1)
         avib=$(echo "$avib_out" | awk '{print$3}')
         echo "$num_fvib    $avib" >> "../../fvib_results.dat"
   
