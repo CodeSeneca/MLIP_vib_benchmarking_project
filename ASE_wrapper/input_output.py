@@ -97,6 +97,7 @@ def read_input_file(input_filename):
   
   ##############################################################################
 
+  print(f"Reading in the input file {input_filename} ...")
   try:
     with open(input_filename, "r") as input_file:
       # Read in the input file line by line
@@ -260,9 +261,6 @@ def read_atoms(file_type):
 
   from ase.io import read
 
-#  if pes_method == "gptff":
-#     atoms = adp.get_atoms(file_type)
-#  else:
   atoms = read(file_type)
 
   return atoms

@@ -14,11 +14,15 @@ do
     cd traj$j
 
     rm run*
-    rm slurm_script
+    rm slurm*
     rm CONTCAR
     rm XDATCAR_mod
     rm fvib.log
     rm travis.log
+    rm md.log
+    rm stability.log
+    rm elem_order.dat
+    rm aimd*
 
     cd ..
   done

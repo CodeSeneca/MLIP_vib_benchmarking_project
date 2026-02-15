@@ -281,8 +281,8 @@ submit_jobs() {
 
       # Rename the job name in the slurm_script to frame$i.$j
       cd traj$j
-      sed -i "6a\\#SBATCH --job-name=run$i.$j" slurm_script
-      sed -i '6d' slurm_script
+      sed -i "5a\\#SBATCH --job-name=run$i.$j" slurm_script
+      sed -i '5d' slurm_script
       cd ..
     done
 
@@ -296,7 +296,7 @@ submit_jobs() {
     for j in $(seq 1 $traj_number); do
       cd "traj$j"
       sbatch slurm_script
-      sleep 1
+      sleep 0.5
       cd ..
     done
     cd ..
