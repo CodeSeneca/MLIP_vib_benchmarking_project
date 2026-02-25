@@ -57,6 +57,9 @@ def read_input_file(input_filename):
 
   # Flag whether calculation should be run on the CPU (cpu) or on the GPU (cuda)
   device="cpu"
+  # Flag whether CUDA acceleration with the cuEquivariance library shall be used
+  # NB: This has to be installed in addition to MACE
+  cueq=False
 
   # Master Keyword to activate the MD routine
   # available are: NVT, NpT
@@ -126,6 +129,8 @@ def read_input_file(input_filename):
           seed = int(line_list[1])
         elif line_list[0] == "pes":
           pes_method = line_list[1]
+        elif line_list[0] == "cueq":
+          cueq = True
 
         # If the Master Keyword ensemble was set to NVT check if the
         # NVT object was correctly initialized in the input file
@@ -253,7 +258,7 @@ def read_input_file(input_filename):
   return pes_method, mace_mlip_type, mace_mlip_file, uma_model, uma_task, \
   gptff_file, ocp_model, ocp_cache, ensemble, thermostat, T_init, pressure, pfactor, num_steps, dt, num_freq, \
   smass, tchain, seed, dispersion, stationary, zero_rotation, device, pdamp, \
-  pchain, npt_method, mattersim_model
+  pchain, npt_method, mattersim_model, cueq
 
 def read_atoms(file_type):
   """Read in the geometry from the POSCAR file and return an atoms object

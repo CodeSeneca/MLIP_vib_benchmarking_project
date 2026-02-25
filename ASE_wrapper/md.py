@@ -156,9 +156,9 @@ def run_md(atoms_object, dynamics_object, num_steps, ensemble, num_freq):
 
   with open(logfile_name, "w") as logfile, open(traj_filename, "w") as traj_file:
 
-    logfile.write("# Step     pot.energy (eV)    kin.energy (eV)   tot.energy (eV)   temperature (K)  volume(A^3)  density(g/cm^3)\n")
-
-    if ensemble == "npt":
+    if ensemble == "nvt":
+      logfile.write("# Step     pot.energy (eV)    kin.energy (eV)   tot.energy (eV)   temperature (K)  volume(A^3)  density(g/cm^3)\n")
+    elif ensemble == "npt":
       logfile.write("# Step     pot.energy (eV)    kin.energy (eV)   tot.energy (eV)   temperature (K)  volume(A^3)  density(g/cm^3)  pressure (GaPa)\n")
     logfile.write("\n")
 

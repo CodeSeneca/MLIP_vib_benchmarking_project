@@ -2,7 +2,8 @@ import sys
 import numpy as np
 
 def set_pes(atoms, pes_method, mace_mlip_type, mace_mlip_file, uma_model, \
-uma_task, gptff_file, ocp_model, ocp_cache, dispersion, device, mattersim_model):
+uma_task, gptff_file, ocp_model, ocp_cache, dispersion, device, \
+mattersim_model, cueq):
   """Set the Calculator used for all calculations"""
 
   # Define a MACE model with possible D3 dispersion correction
@@ -10,19 +11,20 @@ uma_task, gptff_file, ocp_model, ocp_cache, dispersion, device, mattersim_model)
     from mace.calculators import mace_mp
 
     mace_mlip = mace_mp(model=mace_mlip_file, dispersion=dispersion, \
-    default_dtype="float32", device=device)
+    default_dtype="float32", device=device, enable_cueq=cueq)
 
     atoms.calc = mace_mlip
 
   if pes_method == "mace" and (mace_mlip_type == "omat_pbe" or \
-  mace_mlip_type == "omol" or mace_mlip_tpye == "spice_wB97M" or \
-  mace_mlip_type == "rgd1_b3lyp" or mace_mlipy_type == "oc20_usemppbe" or \
+  mace_mlip_type == "omol" or mace_mlip_type == "spice_wB97M" or \
+  mace_mlip_type == "rgd1_b3lyp" or mace_mlip_type == "oc20_usemppbe" or \
   mace_mlip_type == "matpes_r2scan"):
 
     from mace.calculators import mace_mp
 
     mace_mlip = mace_mp(model=mace_mlip_file, dispersion=dispersion, \
-    default_dtype="float32", device=device, head=mace_mlip_type)
+    default_dtype="float32", device=device, head=mace_mlip_type, \
+    enable_cueq=cueq)
 
     atoms.calc = mace_mlip
 
@@ -33,7 +35,7 @@ uma_task, gptff_file, ocp_model, ocp_cache, dispersion, device, mattersim_model)
     # from torch_dftd.torch_dftd3_calculator import TorchDFTD3Calculator as DFTD3
 
     mace_mlip = mace_omol(model=mace_mlip_file, \
-    default_dtype="float32", device=device)
+    default_dtype="float32", device=device, enable_cueq=cueq)
     atoms.calc = mace_mlip
 
     if dispersion:
