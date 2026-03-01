@@ -1,9 +1,9 @@
-#! /apps/python/3.12-conda/bin/python3
+#! /usr/bin/python3
 
 ###############################################################################
 #####
-##### Author: Maximilian Bechtel <maxi.bechtel@fau.de>
-#####         Julien Steffen     <julien.steffen@fau.de>
+##### Authors: Maximilian Bechtel <maxi.bechtel@fau.de>
+#####          Julien Steffen     <julien.steffen@fau.de>
 #####
 ###############################################################################
 
@@ -45,7 +45,8 @@ if __name__ == "__main__":
     gptff_file, ocp_model, ocp_cache, ensemble, thermostat, T_init, pressure, pfactor, \
     num_steps, dt, num_freq, smass, tchain, seed, dispersion, stationary, \
     zero_rotation, device, pdamp, pchain, \
-    npt_method, mattersim_model, cueq = read_input_file(input_file)
+    npt_method, mattersim_model, cueq, \
+    single_point, dtype = read_input_file(input_file)
 
     # Print information about the input parameters given
     print("")
@@ -53,6 +54,7 @@ if __name__ == "__main__":
     if pes_method == "mace":
       print("Used model type:", mace_mlip_type)
       print("Used MACE model:", mace_mlip_file)
+      print("Default data type:", dtype)
       if cueq == True:
         print("cuEquivariance acceleration will be used.")
     elif pes_method == "uma" and uma_model == "small":
@@ -93,11 +95,29 @@ if __name__ == "__main__":
     atoms_object = read_atoms("POSCAR")
     set_pes(atoms_object, pes_method, mace_mlip_type, mace_mlip_file, \
     uma_model, uma_task, gptff_file, ocp_model, ocp_cache, dispersion, \
-    device, mattersim_model, cueq)
+    device, mattersim_model, cueq, dtype)
+
+    # Peform a single point calculation if single_point is set
+    if single_point:
+
+      from calc import calc_single_point
+
+      print("\nAn MLIP single point calculation will be performed.\n")
+      energy, forces = calc_single_point(atoms_object)
+      print(f"Electronic/potential energy: {energy:.5f} eV")
+
+      # Write the forces to file forces.dat
+      with open("forces.dat", 'w') as forces_file:
+        forces_file.write(f"# Forces for structure with energy {energy:.5f} eV\n\n")
+
+        for force in forces:
+          for i in force:
+            forces_file.write(f"{i:15.8f}    ")
+          forces_file.write("\n")
 
     # Initialize the MD simulation and create a dynamics object for it
     # but only if ensemble as Master Keyword is set
-    if ensemble == "nvt" or "npt":
+    elif ensemble == "nvt" or ensemble == "npt":
 
       from md import init_md, run_md
 

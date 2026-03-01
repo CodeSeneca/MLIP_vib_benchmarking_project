@@ -3,7 +3,7 @@ import numpy as np
 
 def set_pes(atoms, pes_method, mace_mlip_type, mace_mlip_file, uma_model, \
 uma_task, gptff_file, ocp_model, ocp_cache, dispersion, device, \
-mattersim_model, cueq):
+mattersim_model, cueq, dtype):
   """Set the Calculator used for all calculations"""
 
   # Define a MACE model with possible D3 dispersion correction
@@ -11,7 +11,7 @@ mattersim_model, cueq):
     from mace.calculators import mace_mp
 
     mace_mlip = mace_mp(model=mace_mlip_file, dispersion=dispersion, \
-    default_dtype="float32", device=device, enable_cueq=cueq)
+    default_dtype=dtype, device=device, enable_cueq=cueq)
 
     atoms.calc = mace_mlip
 
@@ -23,7 +23,7 @@ mattersim_model, cueq):
     from mace.calculators import mace_mp
 
     mace_mlip = mace_mp(model=mace_mlip_file, dispersion=dispersion, \
-    default_dtype="float32", device=device, head=mace_mlip_type, \
+    default_dtype=dtype, device=device, head=mace_mlip_type, \
     enable_cueq=cueq)
 
     atoms.calc = mace_mlip
@@ -35,7 +35,7 @@ mattersim_model, cueq):
     # from torch_dftd.torch_dftd3_calculator import TorchDFTD3Calculator as DFTD3
 
     mace_mlip = mace_omol(model=mace_mlip_file, \
-    default_dtype="float32", device=device, enable_cueq=cueq)
+    default_dtype=dtype, device=device, enable_cueq=cueq)
     atoms.calc = mace_mlip
 
     if dispersion:
@@ -171,6 +171,14 @@ mattersim_model, cueq):
   if pes_method == "sevennet":
     from sevenn.calculator import SevenNetCalculator
     atoms.calc = SevenNetCalculator(model="7net-mf-ompa", modal="mpa", device=device)
+
+def calc_single_point(atoms) -> float:
+  """ Perform a single point calculation """
+
+  energy = atoms.get_potential_energy()
+  forces = atoms.get_forces()
+
+  return energy, forces
 
 def calc_averages():
   """Calculate average quantaties from md.log file written by a MD simulation"""
