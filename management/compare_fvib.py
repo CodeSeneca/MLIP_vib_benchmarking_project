@@ -110,7 +110,7 @@ def plot_histogram(diff, mlip_name):
   ax.bar(bins[:-1], frequencies, width=np.diff(bins), align="edge", color="darkred", label=mlip_name)
   ax.legend(fontsize=12)
 
-  plt.savefig(fname="error_histogram.svg", format="svg")
+  plt.savefig(fname="error_histogram.svg", format="png")
   plt.show()
 
 def plot_scatter(fvib_1, fvib_2, diff, filename1, filename2):
