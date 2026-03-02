@@ -100,21 +100,48 @@ def get_diff(values1, values2, num_atoms_1, num_atoms_2):
 def plot_histogram(diff, mlip_name):
   """Plot the errors as a histogram plot"""
 
-  fig, ax = plt.subplots(figsize=(10,7))
-  ax.set_xlim(0.0, 40.0)
-  ax.set_xlabel(r"error in $F_{vib}$ per atom $(meV)$", fontsize=12)
-  ax.set_ylabel("relative frequency", fontsize=12)
+  filename = "histogram"
 
+  plt.rcParams.update({
+    "font.size": 14,
+    "axes.labelsize": 16,
+    "axes.titlesize": 16,
+    "legend.fontsize": 14,
+    "xtick.labelsize": 14,
+    "ytick.labelsize": 14,
+    "figure.dpi": 300,
+    "savefig.dpi": 300,
+    "text.usetex": True,
+    "font.family": "serif"
+  })
+
+  fig, ax = plt.subplots(figsize=(6, 4.5))
+  
+  ax.set_xlim(0.0, 40.0)
+  ax.set_xlabel(r"Error in $F_{\mathrm{vib}}$ per atom (meV)")
+  ax.set_ylabel("Relative Frequency")
+  
   counts, bins = np.histogram(diff, bins=100)
   frequencies = counts / float(counts.sum())
-  ax.bar(bins[:-1], frequencies, width=np.diff(bins), align="edge", color="darkred", label=mlip_name)
-  ax.legend(fontsize=12)
-
-  plt.savefig(fname="error_histogram.svg", format="png")
-  plt.show()
+  
+  ax.bar(
+      bins[:-1],
+      frequencies,
+      width=np.diff(bins),
+      align="edge",
+      color="#8B0000",
+      label=mlip_name
+  )
+  
+  ax.legend(frameon=False, fontsize=14, loc="best")
+  plt.tight_layout()
+  plt.savefig(f"{filename}_{mlip_name}.pdf", format="pdf")
+  plt.close()
 
 def plot_scatter(fvib_1, fvib_2, diff, filename1, filename2):
   """Plot the two data lists against each other"""
+
+  filename = "scatter"
 
   # Remove all undefined values from fvib_1
   undefined_indeces = []
@@ -138,9 +165,22 @@ def plot_scatter(fvib_1, fvib_2, diff, filename1, filename2):
     fvib_2.pop(undefined_indeces[i]-i)
     fvib_1.pop(undefined_indeces[i]-i)
 
-  fig, ax = plt.subplots(figsize=(10,7))
-  ax.set_xlabel(r"$F_{vib}$ VASP PBE D3-BJ $(eV)$", fontsize=12)
-  ax.set_ylabel(r"$F_{vib}$ MLIP model $(eV)$", fontsize=12)
+  plt.rcParams.update({
+    "font.size": 14,
+    "axes.labelsize": 16,
+    "axes.titlesize": 16,
+    "legend.fontsize": 14,
+    "xtick.labelsize": 14,
+    "ytick.labelsize": 14,
+    "figure.dpi": 300,
+    "savefig.dpi": 300,
+    "text.usetex": True,
+    "font.family": "serif"
+  })
+
+  fig, ax = plt.subplots(figsize=(6, 4.5))
+  ax.set_xlabel(r"$F_{vib}$ VASP PBE D3-BJ $(eV)$")
+  ax.set_ylabel(r"$F_{vib}$ FF method $(eV)$")
 
   # Transform fvib_1 and fvib_2 to numpy arrays
   fvib_1 = np.array(fvib_1)
@@ -164,17 +204,17 @@ def plot_scatter(fvib_1, fvib_2, diff, filename1, filename2):
 
   # Show the R^2 and MAE value in the plot
   ax.text(
-    0.80, 0.10,
+    0.70, 0.15,
     f"$R^2 = {res.rvalue**2:.5f}$\nMAE = {mae:.5f}",
     transform=ax.transAxes,          # relative position with respect to x,y axis
-    fontsize=12,
     verticalalignment='top',
     bbox=dict(boxstyle="round", facecolor="white", alpha=0.7)  # box around the text
   )
 
-  ax.legend(fontsize=12)
-  plt.savefig(fname="fvib_scatter.svg", format="svg")
-  plt.show()
+  plt.tight_layout()
+  ax.legend(frameon=False, fontsize=14, loc="best")
+  plt.savefig(f"{filename}_{mlip_name}.pdf", format="pdf")
+  plt.close()
 
 ################################################################################
 ##### MAIN PROGRAM
