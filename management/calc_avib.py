@@ -1,8 +1,8 @@
-#! /apps/python/3.12-conda/bin/python
+#! /usr/bin/python3
 
 import sys
 import numpy as np
-from scipy.integrate import simpson
+from scipy.integrate import simps
 from scipy.constants import N_A
 from scipy.constants import k as kB
 from scipy.constants import h as h_planck
@@ -76,7 +76,7 @@ def plot_vdos(x, y):
 
 # Integrate a function given by sample points (xi, yi)
 def integrate(x, y):
-  nf = simpson(y, x=x)
+  nf = simps(y, x=x)
   return nf
 
 # Quantum mechanical expression for vibrational frequencies
