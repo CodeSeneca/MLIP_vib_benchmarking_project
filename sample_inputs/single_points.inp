@@ -1,0 +1,20 @@
+# Sample input file for an MLIP single point calculation
+
+# The method that should be used to calculate energies and gradients
+pes mace
+
+mace {
+  # Path to the finetuned MACE model
+  mlip_file /home/hpc/b146dc/b146dc13/work-atuin/H2_droplets/bulk_simulations/MACE/finetuning/model3/GaH-bulk-model3_stagetwo.model
+  # Cuda or cpu
+  device cuda
+  # Default data type
+  dtype float32
+}
+
+# Use the CUDA acceleration with the cuEquivariance Library
+cuEq
+
+# Perform a single point calculation only
+single_point
+
