@@ -54,6 +54,10 @@ def process_args():
         filename = arg_split[1]
       if arg_split[0] == "--device":
         device = arg_split[1]
+      if arg_split[0] == "--path":
+        path = arg_split[1]
+      if arg_split[0] == "--head":
+        head = arg_split[1]
       if arg_split[0] == "--start":
         start = int(arg_split[1])
       if arg_split[0] == "--end":
@@ -71,7 +75,7 @@ def read_molecules(filename, start, end, step):
   atoms = read(filename, index=f"{start}:{end}:{step}")
   return atoms
 
-def set_pes(atoms, path, head, disp=False, dtype="float64", device="cpu", cueq=False):
+def set_pes(atoms, path, head, device, cueq=False, disp=False, dtype="float64"):
   """ Set the calculator for the Potential Energy Surface (PES) """
 
   from mace.calculators import mace_mp
@@ -113,10 +117,10 @@ def main():
   print("=================================")
 
   print("Algorithm: BFGS")
-  print(f"Setting the MACE Calculator to {model} ...")
+  print(f"Setting the MACE Calculator to {path} ...")
+
   if device == "cpu":
     print("The calculations will be performed on the CPU(s).")
-
   elif device == "cuda":
     print("The calculations will be performed on the GPU.")
   else:
