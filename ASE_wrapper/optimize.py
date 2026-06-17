@@ -25,6 +25,12 @@ def process_args():
   # Extract the N frames with lowest energy
   lowest = None
 
+  # Path to the MACE MLIP model file
+  path = None
+  # Used head of the multihead MH-1 model
+  head = "omol"
+
+
   for arg in sys.argv:
     if arg == "-h" or arg == "--help":
       print("Usage: optimize.py [options]\n")
@@ -36,6 +42,8 @@ def process_args():
       print("--step=[process each Nth frame]")
       print("--lowest=[the N frames with lowest energies to extract]")
       print("--device=[cpu or cuda]")
+      print("--path=[path to MACE model]")
+      print("--head=[head for the multihead MACE MH1 model]")
       print("")
       sys.exit(0)
     else:
@@ -55,7 +63,7 @@ def process_args():
       if arg_split[0] == "--lowest":
         lowest = int(arg_split[1])
 
-  return filename, device, fmax, start, end, step, lowest
+  return filename, path, head, device, fmax, start, end, step, lowest
 
 def read_molecules(filename, start, end, step):
   """ Read in the molecules from filename """
@@ -88,17 +96,10 @@ def init_geometry_optimization(atoms):
   return dyn
 
 def main():
-  # Path to the MACE MLIP model file
-  base_path = "/home/bechtel/progs/MLIP_vib_benchmarking_project/MACE_models/"
-  model = "mace-mh-1.model"
-  path = base_path + model
-  # Used head of the multihead MH-1 model
-  head = "omol"
-
   # List of all minimum energies
   energies = []
 
-  filename, device, fmax, start, end, step, lowest = process_args()
+  filename, path, head, device, fmax, start, end, step, lowest = process_args()
   if not filename:
     print("No suitable file for geometry optimization given. Possible are a POSCAR or a complete XDATCAR from a previous MD run.")
     sys.exit(-1)
