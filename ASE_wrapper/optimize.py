@@ -13,6 +13,8 @@ def process_args():
   num_args = len(sys.argv)
   # File to process: POSCAR or complete XDATCAR with MD trajectory are possible
   filename = None
+  # CUDA or CPU
+  device = "cpu"
   # Convergence criterion: max_a(|Fa|) < fmax (in ev/A)
   fmax = 0.025
   # Start and end frame to optimize
@@ -33,6 +35,7 @@ def process_args():
       print("--end=[end frame to optimize]")
       print("--step=[process each Nth frame]")
       print("--lowest=[the N frames with lowest energies to extract]")
+      print("--device=[cpu or cuda]")
       print("")
       sys.exit(0)
     else:
@@ -41,6 +44,8 @@ def process_args():
         fmax = float(arg_split[1])
       if arg_split[0] == "--file":
         filename = arg_split[1]
+      if arg_split[0] == "--device":
+        device = arg_split[1]
       if arg_split[0] == "--start":
         start = int(arg_split[1])
       if arg_split[0] == "--end":
@@ -50,7 +55,7 @@ def process_args():
       if arg_split[0] == "--lowest":
         lowest = int(arg_split[1])
 
-  return filename, fmax, start, end, step, lowest
+  return filename, device, fmax, start, end, step, lowest
 
 def read_molecules(filename, start, end, step):
   """ Read in the molecules from filename """
@@ -93,7 +98,7 @@ def main():
   # List of all minimum energies
   energies = []
 
-  filename, fmax, start, end, step, lowest = process_args()
+  filename, device, fmax, start, end, step, lowest = process_args()
   if not filename:
     print("No suitable file for geometry optimization given. Possible are a POSCAR or a complete XDATCAR from a previous MD run.")
     sys.exit(-1)
@@ -108,6 +113,15 @@ def main():
 
   print("Algorithm: BFGS")
   print(f"Setting the MACE Calculator to {model} ...")
+  if device == "cpu":
+    print("The calculations will be performed on the CPU(s).")
+
+  elif device == "cuda":
+    print("The calculations will be performed on the GPU.")
+  else:
+    print("No suitable device given! The options are cpu or cuda.")
+    sys.exit(1)
+
   print(f"Maximum norm of the force vectors fmax: {fmax}")
   print("The trajectory will be written to opt.traj. Open it with ase gui opt.traj ...\n")
 
@@ -116,7 +130,7 @@ def main():
     energy_file.write("# Frame no.     Energy (eV)     rel. Energy (kJ/mol)\n")
 
     for i, mol in enumerate(molecules):
-      set_pes(mol, path=path, head=head)
+      set_pes(mol, path=path, head=head, device=device)
       dyn = init_geometry_optimization(mol)
 
       os.makedirs(f"frame{i*step + start}", exist_ok=True)
